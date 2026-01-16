@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "Engine/DataAsset.h"
-#include "PDUnitStatsRow.h"
 #include "PDUnitDataAsset.generated.h"
 
 class UTexture2D;

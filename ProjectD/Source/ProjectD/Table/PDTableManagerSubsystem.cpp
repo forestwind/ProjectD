@@ -7,68 +7,202 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 	
-	// DT_UnitStats 자동 로드
-	UnitStatsDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Unit/DataTable/DT_UnitStats"));
+	UnitDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Unit"));
+	UnitStatDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitStat"));
+	UnitLevelDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitLevel"));
+	StageDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Stage"));
+	MonsterGroupDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_MonsterGroup"));
 	
 	// DataTable을 맵으로 변환 (RowName 의존 제거)
-	BuildUnitStatsMap();
+	BuildUnitMap();
+	BuildUnitStatMap();
+	BuildUnitLevelMap();
+	BuildStageMap();
+	BuildMonsterGroupMap();
 }
 
 void UPDTableManagerSubsystem::Deinitialize()
 {
-	UnitStatsMap.Empty();
-	UnitStatsDataTable = nullptr;
+	UnitMap.Empty();
+	UnitStatMap.Empty();
+	UnitLevelMap.Empty();
+	StageMap.Empty();
+	MonsterGroupMap.Empty();
+
+	UnitDataTable = nullptr;
+	UnitStatDataTable = nullptr;
+	UnitLevelDataTable = nullptr;
+	StageDataTable = nullptr;
+	MonsterGroupDataTable = nullptr;
 	Super::Deinitialize();
 }
 
-void UPDTableManagerSubsystem::BuildUnitStatsMap()
+void UPDTableManagerSubsystem::BuildUnitMap()
 {
-	UnitStatsMap.Empty();
+	UnitMap.Empty();
 
-	if (!UnitStatsDataTable)
+	if (!UnitDataTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitStatsDataTable is null!"));
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitDataTable is null!"));
 		return;
 	}
 
 	int32 LoadedCount = 0;
+	TArray<FPDUnitRow*> AllRows;
+	UnitDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitMap"), AllRows);
 
-	TArray<FPDUnitStatsRow*> AllRows;
-	UnitStatsDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitStatsMap"), AllRows);
-
-	// DataTable의 모든 Row를 순회하며 ID를 키로 맵에 저장
-	for (const FPDUnitStatsRow* Row : AllRows)
+	for (const FPDUnitRow* Row : AllRows)
 	{
 		if (!Row) continue;
-		
-		if (Row->ID <= 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] Invalid Unit ID (<=0). Row skipped."));
-			continue;
-		}
+		if (Row->ID <= 0) continue;
+		if (UnitMap.Contains(Row->ID)) continue;
 
-		if (UnitStatsMap.Contains(Row->ID))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] Duplicate Unit ID detected: %d. Row skipped."), Row->ID);
-			continue;
-		}
-
-		UnitStatsMap.Add(Row->ID, Row);
+		UnitMap.Add(Row->ID, Row);
 		++LoadedCount;
-		UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] Added Unit Stats - ID: %d, Attack: %d, Defense: %d"), Row->ID, Row->Attack, Row->Defense);
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitStatsMap built successfully! Total entries: %d"), LoadedCount);
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UnitMap built. Total entries: %d"), LoadedCount);
 }
 
-const FPDUnitStatsRow* UPDTableManagerSubsystem::GetUnitStats(int32 UnitID) const
+void UPDTableManagerSubsystem::BuildUnitStatMap()
 {
-	if (UnitID <= 0)
+	UnitStatMap.Empty();
+
+	if (!UnitStatDataTable)
 	{
-		return nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitStatDataTable is null!"));
+		return;
 	}
 
-	// 맵에서 직접 조회
-	const FPDUnitStatsRow* const* FoundRow = UnitStatsMap.Find(UnitID);
+	int32 LoadedCount = 0;
+	TArray<FPDUnitStatRow*> AllRows;
+	UnitStatDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitStatMap"), AllRows);
+
+	for (const FPDUnitStatRow* Row : AllRows)
+	{
+		if (!Row) continue;
+		if (Row->ID <= 0) continue;
+		if (UnitStatMap.Contains(Row->ID)) continue;
+
+		UnitStatMap.Add(Row->ID, Row);
+		++LoadedCount;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UnitStatMap built. Total entries: %d"), LoadedCount);
+}
+
+void UPDTableManagerSubsystem::BuildUnitLevelMap()
+{
+	UnitLevelMap.Empty();
+
+	if (!UnitLevelDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitLevelDataTable is null!"));
+		return;
+	}
+
+	int32 LoadedCount = 0;
+	TArray<FPDUnitLevelRow*> AllRows;
+	UnitLevelDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitLevelMap"), AllRows);
+
+	for (const FPDUnitLevelRow* Row : AllRows)
+	{
+		if (!Row) continue;
+		if (Row->Level <= 0) continue;
+		if (UnitLevelMap.Contains(Row->Level)) continue;
+
+		UnitLevelMap.Add(Row->Level, Row);
+		++LoadedCount;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UnitLevelMap built. Total entries: %d"), LoadedCount);
+}
+
+void UPDTableManagerSubsystem::BuildStageMap()
+{
+	StageMap.Empty();
+
+	if (!StageDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] StageDataTable is null!"));
+		return;
+	}
+
+	int32 LoadedCount = 0;
+	TArray<FPDStageRow*> AllRows;
+	StageDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildStageMap"), AllRows);
+
+	for (const FPDStageRow* Row : AllRows)
+	{
+		if (!Row) continue;
+		if (Row->ID <= 0) continue;
+		if (StageMap.Contains(Row->ID)) continue;
+
+		StageMap.Add(Row->ID, Row);
+		++LoadedCount;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] StageMap built. Total entries: %d"), LoadedCount);
+}
+
+void UPDTableManagerSubsystem::BuildMonsterGroupMap()
+{
+	MonsterGroupMap.Empty();
+
+	if (!MonsterGroupDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] MonsterGroupDataTable is null!"));
+		return;
+	}
+
+	int32 LoadedCount = 0;
+	TArray<FPDMonsterGroupRow*> AllRows;
+	MonsterGroupDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildMonsterGroupMap"), AllRows);
+
+	for (const FPDMonsterGroupRow* Row : AllRows)
+	{
+		if (!Row) continue;
+		if (Row->ID <= 0) continue;
+		if (MonsterGroupMap.Contains(Row->ID)) continue;
+
+		MonsterGroupMap.Add(Row->ID, Row);
+		++LoadedCount;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] MonsterGroupMap built. Total entries: %d"), LoadedCount);
+}
+
+const FPDUnitRow* UPDTableManagerSubsystem::GetUnit(int32 UnitID) const
+{
+	if (UnitID <= 0) return nullptr;
+	const FPDUnitRow* const* FoundRow = UnitMap.Find(UnitID);
+	return FoundRow ? *FoundRow : nullptr;
+}
+
+const FPDUnitStatRow* UPDTableManagerSubsystem::GetUnitStat(int32 StatID) const
+{
+	if (StatID <= 0) return nullptr;
+	const FPDUnitStatRow* const* FoundRow = UnitStatMap.Find(StatID);
+	return FoundRow ? *FoundRow : nullptr;
+}
+
+const FPDUnitLevelRow* UPDTableManagerSubsystem::GetUnitLevel(int32 Level) const
+{
+	if (Level <= 0) return nullptr;
+	const FPDUnitLevelRow* const* FoundRow = UnitLevelMap.Find(Level);
+	return FoundRow ? *FoundRow : nullptr;
+}
+
+const FPDStageRow* UPDTableManagerSubsystem::GetStage(int32 StageID) const
+{
+	if (StageID <= 0) return nullptr;
+	const FPDStageRow* const* FoundRow = StageMap.Find(StageID);
+	return FoundRow ? *FoundRow : nullptr;
+}
+
+const FPDMonsterGroupRow* UPDTableManagerSubsystem::GetMonsterGroup(int32 MonsterGroupID) const
+{
+	if (MonsterGroupID <= 0) return nullptr;
+	const FPDMonsterGroupRow* const* FoundRow = MonsterGroupMap.Find(MonsterGroupID);
 	return FoundRow ? *FoundRow : nullptr;
 }
