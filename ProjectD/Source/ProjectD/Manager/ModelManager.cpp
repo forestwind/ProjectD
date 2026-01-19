@@ -6,6 +6,7 @@
 #include "../Character/PDCharacter.h"
 #include "../Table/PDTableManagerSubsystem.h"
 #include "../Table/PDUnitRow.h"
+#include "../DataAsset/PDUnitDataAsset.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -37,8 +38,15 @@ APDCharacter* UModelManager::SpawnCharacter(const int32 InUnitID, const FVector&
 		return nullptr;
 	}
 
-	FString Path = TEXT("/Game/Unit/Blueprints/BP_Nana.BP_Nana_C");
-	UClass* ObjectClass = StaticLoadClass(UObject::StaticClass(), NULL, *Path, NULL, LOAD_None, NULL);
+	UPDUnitDataAsset* UnitAsset = TableManager->GetUnitDataAssetByName(UnitData->DataAssetName);
+	if (!UnitAsset)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitDataAsset: %s"), *UnitData->DataAssetName);
+		return nullptr;
+	}
+
+	const FString UnitBPPath = UnitAsset->UnitBP.ToSoftObjectPath().ToString();
+	UClass* ObjectClass = StaticLoadClass(UObject::StaticClass(), NULL, *UnitBPPath, NULL, LOAD_None, NULL);
 	if (ObjectClass == nullptr)
 	{
 		return nullptr;
