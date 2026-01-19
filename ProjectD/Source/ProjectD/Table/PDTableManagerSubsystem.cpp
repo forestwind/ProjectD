@@ -2,6 +2,28 @@
 
 #include "PDTableManagerSubsystem.h"
 #include "Engine/DataTable.h"
+#include "Misc/PackageName.h"
+
+namespace
+{
+	// "DA_Unit_001" 처럼 "에셋 이름"만 허용
+	static FString MakeUnitDataAssetObjectPathFromName(FString In)
+	{
+		In.TrimStartAndEndInline();
+		if (In.IsEmpty())
+		{
+			return FString();
+		}
+		
+		const FString AssetName = FPackageName::GetShortName(In);
+		if (AssetName.IsEmpty())
+		{
+			return FString();
+		}
+
+		return FString::Printf(TEXT("/Game/DataAsset/Unit/%s.%s"), *AssetName, *AssetName);
+	}
+}
 
 void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -23,6 +45,7 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UPDTableManagerSubsystem::Deinitialize()
 {
+	UnitDataAssetCache.Empty();
 	UnitMap.Empty();
 	UnitStatMap.Empty();
 	UnitLevelMap.Empty();
@@ -205,4 +228,46 @@ const FPDMonsterGroupRow* UPDTableManagerSubsystem::GetMonsterGroup(int32 Monste
 	if (MonsterGroupID <= 0) return nullptr;
 	const FPDMonsterGroupRow* const* FoundRow = MonsterGroupMap.Find(MonsterGroupID);
 	return FoundRow ? *FoundRow : nullptr;
+}
+
+UPDUnitDataAsset* UPDTableManagerSubsystem::GetUnitDataAssetByName(const FString& AssetName, bool bForceReload /*=false*/)
+{
+	const FString ObjectPathStr = MakeUnitDataAssetObjectPathFromName(AssetName);
+	if (ObjectPathStr.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] GetUnitDataAssetByName only accepts asset name. Input: %s"), *AssetName);
+		return nullptr;
+	}
+
+	// 캐시 키는 "에셋 이름" 기준으로 통일 (입력 공백/케이스 차이 방지)
+	const FString AssetNameOnly = FPackageName::GetShortName(ObjectPathStr);
+	const FName CacheKey(*AssetNameOnly);
+
+	if (!bForceReload)
+	{
+		if (TObjectPtr<UPDUnitDataAsset>* Found = UnitDataAssetCache.Find(CacheKey))
+		{
+			if (IsValid(*Found))
+			{
+				return Found->Get();
+			}
+
+			// 캐시에 있는데 무효면 제거 후 재로드
+			UnitDataAssetCache.Remove(CacheKey);
+		}
+	}
+	else
+	{
+		UnitDataAssetCache.Remove(CacheKey);
+	}
+
+	UPDUnitDataAsset* Loaded = LoadObject<UPDUnitDataAsset>(nullptr, *ObjectPathStr);
+	if (!Loaded)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] Failed to load UnitDataAsset. Name: %s Path: %s"), *AssetNameOnly, *ObjectPathStr);
+		return nullptr;
+	}
+
+	UnitDataAssetCache.Add(CacheKey, Loaded);
+	return Loaded;
 }

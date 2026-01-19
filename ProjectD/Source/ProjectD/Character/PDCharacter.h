@@ -19,6 +19,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	// TableManager DataAsset TestCode
+	void TestLogUnitDataAsset_DA_Unit_001();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

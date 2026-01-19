@@ -1,17 +1,19 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "Engine/DataTable.h"
+//#include "Engine/DataTable.h"
 #include "PDUnitRow.h"
 #include "PDUnitStatRow.h"
 #include "PDUnitLevelRow.h"
 #include "PDStageRow.h"
 #include "PDMonsterGroupRow.h"
+#include "../DataAsset/PDUnitDataAsset.h"
 #include "PDTableManagerSubsystem.generated.h"
 
+class UDataTable;
 /**
  * 
  */
@@ -25,23 +27,27 @@ public:
 	virtual void Deinitialize() override;
 
 protected:
-	// 유닛 DataTable 참조 (초기화 시 자동 로드)
+
+	// DataTable
+	// 데이터 테이블은 초기화 시 자동 로드
+
+	// UnitDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Unit")
 	TObjectPtr<UDataTable> UnitDataTable;
 
-	// 유닛 기본스탯 DataTable 참조 (초기화 시 자동 로드)
+	// UnitStatDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Unit")
 	TObjectPtr<UDataTable> UnitStatDataTable;
 
-	// 유닛 레벨 DataTable 참조 (초기화 시 자동 로드)
+	// UnitLevelDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Unit")
 	TObjectPtr<UDataTable> UnitLevelDataTable;
 
-	// 스테이지 DataTable 참조 (초기화 시 자동 로드)
+	// StageDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Stage")
 	TObjectPtr<UDataTable> StageDataTable;
 
-	// 몬스터 그룹 DataTable 참조 (초기화 시 자동 로드)
+	// MonsterGroupDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Stage")
 	TObjectPtr<UDataTable> MonsterGroupDataTable;
 
@@ -58,6 +64,11 @@ protected:
 	void BuildUnitLevelMap();
 	void BuildStageMap();
 	void BuildMonsterGroupMap();
+
+	// DataAsset
+	// 로드된 Unit DataAsset 캐시 (GC 방지용)
+	UPROPERTY(Transient)
+	TMap<FName, TObjectPtr<UPDUnitDataAsset>> UnitDataAssetCache;
 
 public:
 	
@@ -90,4 +101,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Table|Stage")
 	UDataTable* GetMonsterGroupDataTable() const { return MonsterGroupDataTable; }
+
+
+	// DataAsset 이름으로 유닛 DataAsset 로드 및 캐시 반환
+	UFUNCTION(BlueprintCallable, Category = "Table|DataAsset")
+	UPDUnitDataAsset* GetUnitDataAssetByName(const FString& AssetName, bool bForceReload = false);
 };
