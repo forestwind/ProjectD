@@ -6,6 +6,12 @@
 #include "GameFramework/Character.h"
 #include "PDCharacter.generated.h"
 
+//class FUnitInfo
+//{
+//
+//};
+
+
 UCLASS()
 class PROJECTD_API APDCharacter : public ACharacter
 {
@@ -29,4 +35,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+protected:
+	FGuid UnitGuid;
 };

@@ -6,12 +6,21 @@
 #include "GameFramework/GameModeBase.h"
 #include "PDGameModeBase.generated.h"
 
+class UModelManager;
+
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class PROJECTD_API APDGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	APDGameModeBase();
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+	virtual void BeginDestroy() override;
+
+protected:
+	TObjectPtr<UModelManager> ModelManager;
 };
