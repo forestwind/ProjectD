@@ -11,6 +11,7 @@
 #include "PDStageRow.h"
 #include "PDMonsterGroupRow.h"
 #include "../DataAsset/PDUnitDataAsset.h"
+#include "../DataAsset/Stage/PDStageDataAsset.h"
 #include "PDTableManagerSubsystem.generated.h"
 
 class UDataTable;
@@ -70,6 +71,9 @@ protected:
 	UPROPERTY(Transient)
 	TMap<FName, TObjectPtr<UPDUnitDataAsset>> UnitDataAssetCache;
 
+	UPROPERTY(Transient)
+	TMap<FName, TObjectPtr<UPDStageDataAsset>> StageDataAssetCache;
+
 public:
 	
 	// Unit ID로 유닛 데이터 조회
@@ -106,4 +110,7 @@ public:
 	// DataAsset 이름으로 유닛 DataAsset 로드 및 캐시 반환
 	UFUNCTION(BlueprintCallable, Category = "Table|DataAsset")
 	UPDUnitDataAsset* GetUnitDataAssetByName(const FString& AssetName, bool bForceReload = false);
+
+	UFUNCTION(BlueprintCallable, Category = "Table|DataAsset")
+	UPDStageDataAsset* GetStageDataAssetByName(const FString& AssetName, bool bForceReload = false);
 };

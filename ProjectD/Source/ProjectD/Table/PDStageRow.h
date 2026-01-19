@@ -26,5 +26,8 @@ struct PROJECTD_API FPDStageRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Stage")
 	int32 MonsterGroup3 = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
+	FString DataAssetName;
 };
 

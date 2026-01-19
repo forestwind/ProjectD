@@ -23,6 +23,23 @@ namespace
 
 		return FString::Printf(TEXT("/Game/DataAsset/Unit/%s.%s"), *AssetName, *AssetName);
 	}
+
+	static FString MakeStageDataAssetObjectPathFromName(FString In)
+	{
+		In.TrimStartAndEndInline();
+		if (In.IsEmpty())
+		{
+			return FString();
+		}
+
+		const FString AssetName = FPackageName::GetShortName(In);
+		if (AssetName.IsEmpty())
+		{
+			return FString();
+		}
+
+		return FString::Printf(TEXT("/Game/DataAsset/Stage/%s.%s"), *AssetName, *AssetName);
+	}
 }
 
 void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -46,6 +63,7 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UPDTableManagerSubsystem::Deinitialize()
 {
 	UnitDataAssetCache.Empty();
+	StageDataAssetCache.Empty();
 	UnitMap.Empty();
 	UnitStatMap.Empty();
 	UnitLevelMap.Empty();
@@ -269,5 +287,47 @@ UPDUnitDataAsset* UPDTableManagerSubsystem::GetUnitDataAssetByName(const FString
 	}
 
 	UnitDataAssetCache.Add(CacheKey, Loaded);
+	return Loaded;
+}
+
+UPDStageDataAsset* UPDTableManagerSubsystem::GetStageDataAssetByName(const FString& AssetName, bool bForceReload)
+{
+	const FString ObjectPathStr = MakeStageDataAssetObjectPathFromName(AssetName);
+	if (ObjectPathStr.IsEmpty())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] GetStageDataAssetByName only accepts asset name. Input: %s"), *AssetName);
+		return nullptr;
+	}
+
+	// 캐시 키는 "에셋 이름" 기준으로 통일 (입력 공백/케이스 차이 방지)
+	const FString AssetNameOnly = FPackageName::GetShortName(ObjectPathStr);
+	const FName CacheKey(*AssetNameOnly);
+
+	if (!bForceReload)
+	{
+		if (TObjectPtr<UPDStageDataAsset>* Found = StageDataAssetCache.Find(CacheKey))
+		{
+			if (IsValid(*Found))
+			{
+				return Found->Get();
+			}
+
+			// 캐시에 있는데 무효면 제거 후 재로드
+			StageDataAssetCache.Remove(CacheKey);
+		}
+	}
+	else
+	{
+		StageDataAssetCache.Remove(CacheKey);
+	}
+
+	UPDStageDataAsset* Loaded = LoadObject<UPDStageDataAsset>(nullptr, *ObjectPathStr);
+	if (!Loaded)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] Failed to load StageDataAsset. Name: %s Path: %s"), *AssetNameOnly, *ObjectPathStr);
+		return nullptr;
+	}
+
+	StageDataAssetCache.Add(CacheKey, Loaded);
 	return Loaded;
 }

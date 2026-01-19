@@ -27,6 +27,7 @@ protected:
 
 	// TableManager DataAsset TestCode
 	void TestLogUnitDataAsset_Unit(int32 UnitTableID);
+	void TestLogStageDataAsset_Stage(const FString& StageAssetName);
 
 public:	
 	// Called every frame

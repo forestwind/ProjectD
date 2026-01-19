@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "../Table/PDTableManagerSubsystem.h"
 #include "../DataAsset/PDUnitDataAsset.h"
+#include "../DataAsset/Stage/PDStageDataAsset.h"
 #include "../Table/PDUnitRow.h"
 
 // Sets default values
@@ -25,6 +26,7 @@ void APDCharacter::BeginPlay()
 
 	TestLogUnitDataAsset_Unit(1);
 	TestLogUnitDataAsset_Unit(2);
+	TestLogStageDataAsset_Stage(TEXT("DA_ForestMap"));
 }
 
 // Called every frame
@@ -76,5 +78,61 @@ void APDCharacter::TestLogUnitDataAsset_Unit(int32 UnitTableID)
 	UE_LOG(LogTemp, Log, TEXT("[PD][Test] %d Unit loaded OK"), UnitTableID);
 	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - UnitName: %s"), *UnitTable->UnitName);
 	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - UnitBP: %s"), UnitBPPath.IsEmpty() ? TEXT("(None)") : *UnitBPPath);
+}
+
+void APDCharacter::TestLogStageDataAsset_Stage(const FString& StageAssetName)
+{
+	UGameInstance* GI = GetGameInstance();
+	if (!GI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] GameInstance is null."));
+		return;
+	}
+
+	UPDTableManagerSubsystem* TableManager = GI->GetSubsystem<UPDTableManagerSubsystem>();
+	if (!TableManager)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] TableManagerSubsystem is null."));
+		return;
+	}
+
+	const UPDStageDataAsset* StageTable = TableManager->GetStageDataAssetByName(StageAssetName);
+	if (!StageTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load StageTable : %s"), *StageAssetName);
+		return;
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][Test][Stage] Loaded OK. Name: %s Path: %s"), *StageAssetName, *StageTable->GetPathName());
+	UE_LOG(LogTemp, Log, TEXT("[PD][Test][Stage] Rounds: %d"), StageTable->Rounds.Num());
+
+	for (int32 RoundIdx = 0; RoundIdx < StageTable->Rounds.Num(); ++RoundIdx)
+	{
+		const FStageRoundSpawnData& Round = StageTable->Rounds[RoundIdx];
+		UE_LOG(LogTemp, Log, TEXT("[PD][Test][Stage][%s] Round[%d] Ally:%d Enemy:%d"),
+			*StageAssetName,
+			RoundIdx,
+			Round.AllySpawnPoints.Num(),
+			Round.EnemySpawnPoints.Num());
+
+		auto LogSpawnPoints = [&](const TCHAR* SideLabel, const TArray<FStageUnitSpawnPoint>& Points)
+		{
+			for (int32 PointIdx = 0; PointIdx < Points.Num(); ++PointIdx)
+			{
+				const FStageUnitSpawnPoint& P = Points[PointIdx];
+				UE_LOG(LogTemp, Log, TEXT("[PD][Test][Stage][%s]  - Round[%d] %s[%d] Slot:%d Loc:%s Rot:%s"),
+					*StageAssetName,
+					RoundIdx,
+					SideLabel,
+					PointIdx,
+					P.SlotIndex,
+					*P.Location.ToString(),
+					*P.Rotation.ToString());
+			}
+		};
+
+		LogSpawnPoints(TEXT("Ally"), Round.AllySpawnPoints);
+		LogSpawnPoints(TEXT("Enemy"), Round.EnemySpawnPoints);
+	}
 }
 
