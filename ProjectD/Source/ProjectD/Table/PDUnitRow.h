@@ -24,5 +24,8 @@ struct PROJECTD_API FPDUnitRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit")
 	int32 KillExp = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit")
+	FString DataAssetName;
 };
 

@@ -26,7 +26,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	// TableManager DataAsset TestCode
-	void TestLogUnitDataAsset_DA_Unit_001();
+	void TestLogUnitDataAsset_Unit(int32 UnitTableID);
 
 public:	
 	// Called every frame

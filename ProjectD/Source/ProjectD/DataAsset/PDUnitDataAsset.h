@@ -25,11 +25,7 @@ public:
 
 	// 유닛 블루프린트 클래스
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit|Assets")
-	TSoftClassPtr<AActor> UnitBP;
-
-	// 유닛 메시
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit|Assets")
-	TSoftObjectPtr<USkeletalMesh> Mesh;
+	TSoftClassPtr<ACharacter> UnitBP;
 
 	// 유닛 아이콘
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit|Assets")

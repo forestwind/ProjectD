@@ -1,4 +1,8 @@
-Name,ID,UnitName,StatID,KillExp
-1,1,Nana,1,10
-2,2,Red_Knight,2,20
-
+Name,ID,UnitName,StatID,KillExp,DataAssetName
+1,1,Camel,1,10,DA_Unit_Camel
+2,2,Holden,2,20,DA_Unit_Holden
+3,3,Landon,1,10,DA_Unit_Landon
+4,4,Mistic,2,20,DA_Unit_Mistic
+5,5,Nana,1,10,DA_Unit_Nana
+6,6,Ramia,2,20,DA_Unit_Ramia
+7,7,Red_Knight,1,10,DA_Unit_Red_Knight

@@ -6,6 +6,7 @@
 #include "Engine/GameInstance.h"
 #include "../Table/PDTableManagerSubsystem.h"
 #include "../DataAsset/PDUnitDataAsset.h"
+#include "../Table/PDUnitRow.h"
 
 // Sets default values
 APDCharacter::APDCharacter()
@@ -22,7 +23,8 @@ void APDCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 
-	TestLogUnitDataAsset_DA_Unit_001();
+	TestLogUnitDataAsset_Unit(1);
+	TestLogUnitDataAsset_Unit(2);
 }
 
 // Called every frame
@@ -38,7 +40,7 @@ void APDCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void APDCharacter::TestLogUnitDataAsset_DA_Unit_001()
+void APDCharacter::TestLogUnitDataAsset_Unit(int32 UnitTableID)
 {
 	UGameInstance* GI = GetGameInstance();
 	if (!GI)
@@ -54,20 +56,25 @@ void APDCharacter::TestLogUnitDataAsset_DA_Unit_001()
 		return;
 	}
 
-	UPDUnitDataAsset* DA = TableManager->GetUnitDataAssetByName(TEXT("DA_Unit_001"));
+	const FPDUnitRow* UnitTable = TableManager->GetUnit(UnitTableID);
+	if (!UnitTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitTable : %d"), UnitTableID);
+		return;
+	}
+
+	UPDUnitDataAsset* DA = TableManager->GetUnitDataAssetByName(UnitTable->DataAssetName);
 	if (!DA)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitDataAsset: DA_Unit_001"));
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitDataAsset: %s"), *UnitTable->DataAssetName);
 		return;
 	}
 
 	const FString UnitBPPath = DA->UnitBP.ToSoftObjectPath().ToString();
-	const FString MeshPath = DA->Mesh.ToSoftObjectPath().ToString();
 	const FString IconPath = DA->Icon.ToSoftObjectPath().ToString();
 
-	UE_LOG(LogTemp, Log, TEXT("[PD][Test] DA_Unit_001 loaded OK"));
+	UE_LOG(LogTemp, Log, TEXT("[PD][Test] %d Unit loaded OK"), UnitTableID);
+	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - UnitName: %s"), *UnitTable->UnitName);
 	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - UnitBP: %s"), UnitBPPath.IsEmpty() ? TEXT("(None)") : *UnitBPPath);
-	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - Mesh  : %s"), MeshPath.IsEmpty() ? TEXT("(None)") : *MeshPath);
-	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - Icon  : %s"), IconPath.IsEmpty() ? TEXT("(None)") : *IconPath);
 }
 
