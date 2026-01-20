@@ -30,5 +30,17 @@ public:
 	// 유닛 아이콘
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit|Assets")
 	TSoftObjectPtr<UTexture2D> Icon;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit|Animation")
+	TSoftObjectPtr<UAnimMontage> IdleMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit|Animation")
+	TSoftObjectPtr<UAnimMontage> AttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit|Animation")
+	TSoftObjectPtr<UAnimMontage> DieMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit|Animation")
+	TSoftObjectPtr<UAnimMontage> VictoryMontage;
 };
 
