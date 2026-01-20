@@ -24,6 +24,9 @@ public:
 	// Sets default values for this character's properties
 	APDCharacter();
 
+	FGuid GetUnitGuid() const { return UnitGuid; }
+	void SetUnitGuid(const FGuid InUnitGuid) { UnitGuid = InUnitGuid; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
