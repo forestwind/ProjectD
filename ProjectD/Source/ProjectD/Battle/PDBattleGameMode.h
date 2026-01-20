@@ -16,4 +16,6 @@ class PROJECTD_API APDBattleGameMode : public APDGameModeBase
 	
 public:
 	virtual void BeginPlay() override;
+
+	void SpawnStageUnit();
 };

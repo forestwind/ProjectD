@@ -33,7 +33,6 @@ protected:
 
 	// TableManager DataAsset TestCode
 	void LoadInfo(const int32 UnitTableID);
-	void TestLogStageDataAsset_Stage(const FString& StageAssetName);
 
 	void LoadAnimation();
 	void ChangeAnimation(EAIState InAIState);
