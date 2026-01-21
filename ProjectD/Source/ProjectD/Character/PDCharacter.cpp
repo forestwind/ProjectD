@@ -45,6 +45,12 @@ void APDCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void APDCharacter::SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid)
+{
+	UnitID = InUnitTableID;
+	UnitGuid = InUnitGuid;
+}
+
 void APDCharacter::LoadInfo(const int32 UnitTableID)
 {
 	UGameInstance* GI = GetGameInstance();

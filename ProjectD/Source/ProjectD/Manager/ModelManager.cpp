@@ -58,8 +58,7 @@ APDCharacter* UModelManager::SpawnCharacter(const int32 InUnitID, const FVector&
 	if (PDCharacter)
 	{
 		FGuid NewGuid = FGuid::NewGuid();
-		// init character
-		PDCharacter->SetUnitGuid(NewGuid);
+		PDCharacter->SetInfo(InUnitID, NewGuid);
 		CharacterMap.Add(NewGuid, PDCharacter);
 	}
 

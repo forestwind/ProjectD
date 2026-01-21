@@ -9,10 +9,15 @@
 class UPDUnitDataAsset;
 enum class EAIState : uint8;
 
-//class FUnitInfo
-//{
-//
-//};
+class FUnitInfo
+{
+	int32 Level;
+	int32 CurHP;
+	int32 MaxHP;
+	int32 Attack;
+	int32 Defense;
+	int32 Exp;
+};
 
 
 UCLASS()
@@ -25,13 +30,14 @@ public:
 	APDCharacter();
 
 	FGuid GetUnitGuid() const { return UnitGuid; }
-	void SetUnitGuid(const FGuid InUnitGuid) { UnitGuid = InUnitGuid; }
+	//void SetUnitGuid(const FGuid InUnitGuid) { UnitGuid = InUnitGuid; }
+
+	void SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	// TableManager DataAsset TestCode
 	void LoadInfo(const int32 UnitTableID);
 
 	void LoadAnimation();

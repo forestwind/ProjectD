@@ -22,5 +22,6 @@ public:
 	virtual void BeginDestroy() override;
 
 protected:
+	UPROPERTY(transient)
 	TObjectPtr<UModelManager> ModelManager;
 };
