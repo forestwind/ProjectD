@@ -30,14 +30,48 @@ void APDBattleGameMode::SpawnStageUnit()
 	}
 
 	// Test: StageId / RoundIndex 로 라운드 스폰 테스트 (적군)
-	// RoundIndex: 0-based (0->MonsterGroup1, 1->MonsterGroup2, 2->MonsterGroup3)
 	const int32 TestStageId = 1;
 	const int32 TestRoundIndex = 0;
 
 	UPDStageRoundSpawner* Spawner = NewObject<UPDStageRoundSpawner>(this);
 	Spawner->Initialize(ModelManager);
 
-	const TArray<FPDSpawnedStageUnitResult> Spawned = Spawner->SpawnEnemyStageRoundUnits(TestStageId, TestRoundIndex);
+	// ===== Enemy Spawn Test =====
+	const TArray<FPDSpawnedStageUnitResult> SpawnedEnemies =
+		Spawner->SpawnEnemyStageRoundUnits(TestStageId, TestRoundIndex);
+
 	UE_LOG(LogTemp, Log, TEXT("[PD][BattleGameMode] StageRoundSpawner spawned %d enemy units. (StageId:%d Round:%d)"),
-		Spawned.Num(), TestStageId, TestRoundIndex);
+		SpawnedEnemies.Num(), TestStageId, TestRoundIndex);
+
+	// ===== Ally Spawn Test =====
+	TArray<int32> AllyUnitIdList;
+	AllyUnitIdList.Add(1); // SlotIndex 0
+	AllyUnitIdList.Add(2); // SlotIndex 1
+	AllyUnitIdList.Add(3); // SlotIndex 2
+	AllyUnitIdList.Add(4); // SlotIndex 3
+	AllyUnitIdList.Add(5); // SlotIndex 4 - 0 대입시 Skip
+
+	const TArray<APDCharacter*> SpawnedAllies =
+		Spawner->SpawnAllyStageRoundUnits(TestStageId, TestRoundIndex, AllyUnitIdList);
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][BattleGameMode] StageRoundSpawner spawned %d ally units. (StageId:%d Round:%d)"),
+		SpawnedAllies.Num(), TestStageId, TestRoundIndex);
+
+	for (int32 i = 0; i < SpawnedAllies.Num(); ++i)
+	{
+		if (APDCharacter* Ch = SpawnedAllies[i])
+		{
+			const FVector Loc = Ch->GetActorLocation();
+			const FRotator Rot = Ch->GetActorRotation();
+			UE_LOG(LogTemp, Log,
+				TEXT("[PD][BattleGameMode] Ally[%d] Spawned - Loc:%s Rot:%s"),
+				i, *Loc.ToString(), *Rot.ToString());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning,
+				TEXT("[PD][BattleGameMode] Ally[%d] is null (spawn may have failed)."),
+				i);
+		}
+	}
 }

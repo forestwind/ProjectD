@@ -7,7 +7,8 @@
 #include "PDMonsterGroupRow.generated.h"
 
 // CSV(DataTable)로 관리하는 몬스터 그룹 데이터 (Content/Unit/Raw/CSV/MonsterGroup.csv)
-// 주의: CSV 헤더에 "Monter1_LV" 오타가 있어 동일한 이름으로 맞춤
+// NOTE: CSV(DataTable) 매핑을 위해 슬롯을 펼친 형태로 유지
+
 USTRUCT(BlueprintType)
 struct PROJECTD_API FPDMonsterGroupRow : public FTableRowBase
 {
@@ -17,33 +18,33 @@ struct PROJECTD_API FPDMonsterGroupRow : public FTableRowBase
 	int32 ID = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster1 = 0;
+	int32 Slot0_UnitId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster1_LV = 0;
+	int32 Slot0_UnitLv = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster2 = 0;
+	int32 Slot1_UnitId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster2_LV = 0;
+	int32 Slot1_UnitLv = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster3 = 0;
+	int32 Slot2_UnitId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster3_LV = 0;
+	int32 Slot2_UnitLv = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster4 = 0;
+	int32 Slot3_UnitId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster4_LV = 0;
+	int32 Slot3_UnitLv = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster5 = 0;
+	int32 Slot4_UnitId = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="MonsterGroup")
-	int32 Monster5_LV = 0;
+	int32 Slot4_UnitLv = 0;
 };
 
