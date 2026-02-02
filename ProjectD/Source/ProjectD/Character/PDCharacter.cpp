@@ -8,6 +8,8 @@
 #include "../DataAsset/PDUnitDataAsset.h"
 #include "../DataAsset/Stage/PDStageDataAsset.h"
 #include "../Table/PDUnitRow.h"
+#include "../Table/PDUnitStatRow.h"
+#include "../Table/PDUnitLevelRow.h"
 
 // Sets default values
 APDCharacter::APDCharacter()
@@ -29,7 +31,6 @@ APDCharacter::APDCharacter()
 void APDCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	LoadInfo(UnitID);
 }
 
 // Called every frame
@@ -49,6 +50,7 @@ void APDCharacter::SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid)
 {
 	UnitID = InUnitTableID;
 	UnitGuid = InUnitGuid;
+	LoadInfo(UnitID);
 }
 
 void APDCharacter::LoadInfo(const int32 UnitTableID)
@@ -56,40 +58,64 @@ void APDCharacter::LoadInfo(const int32 UnitTableID)
 	UGameInstance* GI = GetGameInstance();
 	if (!GI)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] GameInstance is null."));
+		UE_LOG(LogTemp, Warning, TEXT("[PD] GameInstance is null."));
 		return;
 	}
 
 	UPDTableManagerSubsystem* TableManager = GI->GetSubsystem<UPDTableManagerSubsystem>();
 	if (!TableManager)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] TableManagerSubsystem is null."));
+		UE_LOG(LogTemp, Warning, TEXT("[PD] TableManagerSubsystem is null."));
 		return;
 	}
 
 	const FPDUnitRow* UnitTable = TableManager->GetUnit(UnitTableID);
 	if (!UnitTable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitTable : %d"), UnitTableID);
+		UE_LOG(LogTemp, Warning, TEXT("[PD] Failed to load UnitTable : %d"), UnitTableID);
 		return;
 	}
 
 	UnitAsset = TableManager->GetUnitDataAssetByName(UnitTable->DataAssetName);
 	if (!UnitAsset)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitDataAsset: %s"), *UnitTable->DataAssetName);
+		UE_LOG(LogTemp, Warning, TEXT("[PD] Failed to load UnitDataAsset: %s"), *UnitTable->DataAssetName);
 		return;
 	}
 
-	const FString UnitBPPath = UnitAsset->UnitBP.ToSoftObjectPath().ToString();
-	const FString IconPath = UnitAsset->Icon.ToSoftObjectPath().ToString();
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][Test] %d Unit loaded OK"), UnitTableID);
-	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - UnitName: %s"), *UnitTable->UnitName);
-	UE_LOG(LogTemp, Log, TEXT("[PD][Test] - UnitBP: %s"), UnitBPPath.IsEmpty() ? TEXT("(None)") : *UnitBPPath);
+	LoadStat(TableManager, UnitTable);
 
 	SpawnDefaultController();
 	LoadAnimation();
+	
+	UE_LOG(LogTemp, Log, TEXT("[PD] [%d, %s] Unit loaded OK"), UnitTableID, *UnitTable->UnitName);
+}
+
+void APDCharacter::LoadStat(const UPDTableManagerSubsystem* InTableManager, const FPDUnitRow* InUnitTable)
+{
+	if (InTableManager == nullptr || InUnitTable == nullptr)
+	{
+		return;
+	}
+
+	const FPDUnitStatRow* StatData = InTableManager->GetUnitStat(InUnitTable->StatID);
+	if (StatData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD] Failed to load UnitStatTable : %d"), InUnitTable->StatID);
+		return;
+	}
+
+	const FPDUnitLevelRow* LevelData = InTableManager->GetUnitLevel(UnitInfo.Level);
+	if (LevelData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD] Failed to load UnitLevelTable : %d"), UnitInfo.Level);
+		return;
+	}
+
+	// setting info
+	UnitInfo.MaxHP = UnitInfo.CurHP = StatData->HP + LevelData->AddHP;
+	UnitInfo.Attack = StatData->Attack + LevelData->AddAttack;
+	UnitInfo.Defense = StatData->Defense + LevelData->AddDefence;
 }
 
 void APDCharacter::LoadAnimation()
@@ -102,29 +128,26 @@ void APDCharacter::LoadAnimation()
 	IdleMontage = UnitAsset->IdleMontage.LoadSynchronous();
 	if (IdleMontage == nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Invalid IdleMontage [UnitID: %d]"), UnitID);
+		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid IdleMontage [UnitID: %d]"), UnitID);
 	}
 
 	AttackMontage = UnitAsset->AttackMontage.LoadSynchronous();
 	if (AttackMontage == nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Invalid AttackMontage [UnitID: %d]"), UnitID);
+		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid AttackMontage [UnitID: %d]"), UnitID);
 	}
 
 	DieMontage = UnitAsset->DieMontage.LoadSynchronous();
 	if (DieMontage == nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Invalid DieMontage [UnitID: %d]"), UnitID);
+		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid DieMontage [UnitID: %d]"), UnitID);
 	}
 
 	VictoryMontage = UnitAsset->VictoryMontage.LoadSynchronous();
 	if (VictoryMontage == nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Invalid VictoryMontage [UnitID: %d]"), UnitID);
+		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid VictoryMontage [UnitID: %d]"), UnitID);
 	}
-
-	// test
-	ChangeAnimation(EAIState::Attack);
 }
 
 void APDCharacter::ChangeAnimation(EAIState InAIState)
@@ -166,14 +189,34 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 
 void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 {
-	APDAIController* PDAIController = Cast<APDAIController>(GetController());
-	if (PDAIController == nullptr)
-	{
-		return;
-	}
-
 	if (InMontage == VictoryMontage || InMontage == AttackMontage)
 	{
-		PDAIController->ChangeAIState(EAIState::Idle);
+		ChangeAIState(EAIState::Idle);
+	}
+}
+
+void APDCharacter::ChangeAIState(EAIState InAIState)
+{
+	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
+	{
+		PDAIController->ChangeAIState(InAIState);
+	}
+}
+
+void APDCharacter::Attack()
+{
+}
+
+void APDCharacter::TakeDamaged(const float InDamage)
+{
+	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
+	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
+	if (UnitInfo.CurHP > 0)
+	{
+		//ChangeAIState(EAIState::Damage);
+	}
+	else
+	{
+		ChangeAIState(EAIState::Die);
 	}
 }

@@ -6,17 +6,25 @@
 #include "GameFramework/Character.h"
 #include "PDCharacter.generated.h"
 
+struct FPDUnitRow;
+class UPDTableManagerSubsystem;
 class UPDUnitDataAsset;
 enum class EAIState : uint8;
 
 class FUnitInfo
 {
-	int32 Level;
+public:
+	int32 Level = 1;
 	int32 CurHP;
 	int32 MaxHP;
-	int32 Attack;
-	int32 Defense;
+	float Attack;
+	float Defense;
 	int32 Exp;
+	
+public:
+	float GetHPPercent() const {
+		return MaxHP > 0 ? (float)CurHP / (float)MaxHP : 0.0f;
+	}
 };
 
 
@@ -39,10 +47,15 @@ protected:
 	virtual void BeginPlay() override;
 
 	void LoadInfo(const int32 UnitTableID);
+	void LoadStat(const UPDTableManagerSubsystem* InTableManager, const FPDUnitRow* InUnitTable);
 
 	void LoadAnimation();
 	void ChangeAnimation(EAIState InAIState);
 	void AnimationEnd(UAnimMontage* InMontage, bool bInterrupted);
+	void ChangeAIState(EAIState InAIState);
+
+	void Attack();
+	void TakeDamaged(const float InDamage);
 
 public:	
 	// Called every frame
@@ -62,6 +75,9 @@ protected:
 	UAnimMontage* AttackMontage;
 
 	UPROPERTY()
+	UAnimMontage* DamagedMontage;
+
+	UPROPERTY()
 	UAnimMontage* DieMontage;
 
 	UPROPERTY()
@@ -70,4 +86,6 @@ protected:
 protected:
 	FGuid UnitGuid;
 	int32 UnitID;
+
+	FUnitInfo UnitInfo;
 };

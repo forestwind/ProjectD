@@ -13,6 +13,7 @@ enum class EAIState : uint8
 	Idle,
 	Move,
 	Attack,
+	Damage,
 	Die,
 	Victory,
 	Max

@@ -24,5 +24,6 @@ public:
 	APDCharacter* FindCharacter(const FGuid InUnitGuid);
 
 private:
+	UPROPERTY(transient)
 	TMap<FGuid, TObjectPtr<APDCharacter>> CharacterMap;
 };
