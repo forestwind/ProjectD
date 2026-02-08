@@ -2,6 +2,7 @@
 
 
 #include "PDCharacter.h"
+#include "../UI/Battle/PDHpBarWidgetComponent.h"
 #include "PDAIController.h"
 #include "Engine/GameInstance.h"
 #include "../Table/PDTableManagerSubsystem.h"
@@ -25,6 +26,9 @@ APDCharacter::APDCharacter()
 
 	UnitGuid = FGuid();
 	UnitID = 1;
+
+	HpBarWidgetComponent = CreateDefaultSubobject<UPDHpBarWidgetComponent>(TEXT("HpBarWidget"));
+	HpBarWidgetComponent->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -51,6 +55,14 @@ void APDCharacter::SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid)
 	UnitID = InUnitTableID;
 	UnitGuid = InUnitGuid;
 	LoadInfo(UnitID);
+}
+
+void APDCharacter::UpdateUIHpBar(float Value)
+{
+	if (HpBarWidgetComponent)
+	{
+		HpBarWidgetComponent->UpdateHpBar(Value);
+	}
 }
 
 void APDCharacter::LoadInfo(const int32 UnitTableID)
@@ -116,6 +128,7 @@ void APDCharacter::LoadStat(const UPDTableManagerSubsystem* InTableManager, cons
 	UnitInfo.MaxHP = UnitInfo.CurHP = StatData->HP + LevelData->AddHP;
 	UnitInfo.Attack = StatData->Attack + LevelData->AddAttack;
 	UnitInfo.Defense = StatData->Defense + LevelData->AddDefence;
+	UpdateUIHpBar(GetHpPercent());
 }
 
 void APDCharacter::LoadAnimation()
@@ -210,6 +223,7 @@ void APDCharacter::Attack()
 void APDCharacter::TakeDamaged(const float InDamage)
 {
 	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
+	UpdateUIHpBar(GetHpPercent());
 	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
 	if (UnitInfo.CurHP > 0)
 	{

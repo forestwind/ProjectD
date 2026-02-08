@@ -9,6 +9,7 @@
 struct FPDUnitRow;
 class UPDTableManagerSubsystem;
 class UPDUnitDataAsset;
+class UPDHpBarWidgetComponent;
 enum class EAIState : uint8;
 
 class FUnitInfo
@@ -41,6 +42,9 @@ public:
 	//void SetUnitGuid(const FGuid InUnitGuid) { UnitGuid = InUnitGuid; }
 
 	void SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid);
+
+	void UpdateUIHpBar(float Value);
+	float GetHpPercent() const { return UnitInfo.GetHPPercent(); }
 
 protected:
 	// Called when the game starts or when spawned
@@ -82,6 +86,10 @@ protected:
 
 	UPROPERTY()
 	UAnimMontage* VictoryMontage;
+
+	/** 캐릭터 머리 위 HP 바 (생성/클래스 로드/갱신은 컴포넌트에서 담당) */
+	UPROPERTY(VisibleAnywhere, Category = "UI")
+	TObjectPtr<UPDHpBarWidgetComponent> HpBarWidgetComponent;
 
 protected:
 	FGuid UnitGuid;
