@@ -11,6 +11,7 @@
 #include "../Table/PDUnitRow.h"
 #include "../Table/PDUnitStatRow.h"
 #include "../Table/PDUnitLevelRow.h"
+#include "../Battle/PDBattleGameMode.h"
 
 // Sets default values
 APDCharacter::APDCharacter()
@@ -62,6 +63,37 @@ void APDCharacter::UpdateUIHpBar(float Value)
 	if (HpBarWidgetComponent)
 	{
 		HpBarWidgetComponent->UpdateHpBar(Value);
+	}
+}
+
+void APDCharacter::Attack(APDCharacter* InTarget)
+{
+	if (InTarget == nullptr)
+	{
+		return;
+	}
+
+	ChangeAIState(EAIState::Attack);
+	InTarget->TakeDamaged(UnitInfo.Attack);
+}
+
+void APDCharacter::TakeDamaged(const float InDamage)
+{
+	if (UnitInfo.CurHP <= 0)
+	{
+		return;
+	}
+
+	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
+	UpdateUIHpBar(GetHpPercent());
+	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
+	if (UnitInfo.CurHP > 0)
+	{
+		ChangeAIState(EAIState::Damage);
+	}
+	else
+	{
+		ChangeAIState(EAIState::Die);
 	}
 }
 
@@ -150,6 +182,12 @@ void APDCharacter::LoadAnimation()
 		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid AttackMontage [UnitID: %d]"), UnitID);
 	}
 
+	DamagedMontage = UnitAsset->DamageMontage.LoadSynchronous();
+	if (DamagedMontage == nullptr)
+	{
+		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid DamagedMontage [UnitID: %d]"), UnitID);
+	}
+
 	DieMontage = UnitAsset->DieMontage.LoadSynchronous();
 	if (DieMontage == nullptr)
 	{
@@ -176,33 +214,63 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 		return;
 	}
 
-	if (InAIState == EAIState::Idle)
+	bool bBindDelegate = false;
+	UAnimMontage* PlayMontage = nullptr;
+
+	switch (InAIState)
 	{
-		PlayAnimMontage(IdleMontage);
+	case EAIState::Idle:
+		PlayMontage = IdleMontage;
+		break;
+	case EAIState::Attack:
+	{
+		PlayMontage = AttackMontage;
+		bBindDelegate = true;
 	}
-	else if (InAIState == EAIState::Attack)
+	break;
+	case EAIState::Damage:
 	{
-		PlayAnimMontage(AttackMontage);
-		FOnMontageBlendingOutStarted BlendOutDelegate;
-		BlendOutDelegate.BindUObject(this, &APDCharacter::AnimationEnd);
-		AnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, AttackMontage);
+		PlayMontage = DamagedMontage;
+		bBindDelegate = true;
 	}
-	else if (InAIState == EAIState::Die)
+	break;
+	case EAIState::Die:
 	{
-		PlayAnimMontage(DieMontage);
+		PlayMontage = DieMontage;
+		bBindDelegate = true;
 	}
-	else if (InAIState == EAIState::Victory)
+	break;
+	case EAIState::Victory:
 	{
-		PlayAnimMontage(VictoryMontage);
-		FOnMontageBlendingOutStarted BlendOutDelegate;
-		BlendOutDelegate.BindUObject(this, &APDCharacter::AnimationEnd);
-		AnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, VictoryMontage);
+		PlayMontage = VictoryMontage;
+		bBindDelegate = true;
+	}
+	break;
+	}
+
+	if (PlayMontage)
+	{
+		PlayAnimMontage(PlayMontage);
+
+		if (bBindDelegate)
+		{
+			FOnMontageBlendingOutStarted BlendOutDelegate;
+			BlendOutDelegate.BindUObject(this, &APDCharacter::AnimationEnd);
+			AnimInstance->Montage_SetBlendingOutDelegate(BlendOutDelegate, PlayMontage);
+		}
 	}
 }
 
 void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 {
-	if (InMontage == VictoryMontage || InMontage == AttackMontage)
+	if (InMontage == DieMontage)
+	{
+		if (APDBattleGameMode* BattleGameMode = Cast<APDBattleGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			BattleGameMode->DespawnUnit(UnitGuid);
+		}
+	}
+	else if (InMontage == VictoryMontage || InMontage == AttackMontage || InMontage == DamagedMontage)
 	{
 		ChangeAIState(EAIState::Idle);
 	}
@@ -212,25 +280,7 @@ void APDCharacter::ChangeAIState(EAIState InAIState)
 {
 	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
 	{
+		ChangeAnimation(InAIState);
 		PDAIController->ChangeAIState(InAIState);
-	}
-}
-
-void APDCharacter::Attack()
-{
-}
-
-void APDCharacter::TakeDamaged(const float InDamage)
-{
-	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
-	UpdateUIHpBar(GetHpPercent());
-	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
-	if (UnitInfo.CurHP > 0)
-	{
-		//ChangeAIState(EAIState::Damage);
-	}
-	else
-	{
-		ChangeAIState(EAIState::Die);
 	}
 }

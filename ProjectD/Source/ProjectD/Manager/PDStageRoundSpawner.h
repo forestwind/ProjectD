@@ -26,7 +26,7 @@ struct FPDSpawnedStageUnitResult
 	int32 UnitLv = 0;
 
 	UPROPERTY(BlueprintReadOnly, Category = "PD|Stage|Spawn")
-	int32 SlotIndex = 0;
+	int32 SlotIndex = -1;
 
 	UPROPERTY(BlueprintReadOnly, Category = "PD|Stage|Spawn")
 	FVector SpawnLocation = FVector::ZeroVector;

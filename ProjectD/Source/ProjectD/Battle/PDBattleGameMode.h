@@ -28,17 +28,42 @@ public:
 
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
+
+	void DespawnUnit(const FGuid& InUnitGuid);
+
+protected:
+	void ChangeGameState(const EGameState InGameState);
+	void ReadyGame();
+	void StartGame();
+	void EndGame();
 
 	void StartStage(const int32 InStageID);
 	void StartRound(const int32 InRoundIndex);
 	void SpawnStageUnit();
 
+	void ExecuteTurn();
+	void ExecutePlayerTurn();
+	void ExecuteEnemyTurn();
+
 protected:
+	UPROPERTY(transient)
+	class UPDStageRoundSpawner* Spawner;
+
+	UPROPERTY(transient)
+	TMap<int32, TObjectPtr<APDCharacter>> PlayerCharacters;
+
+	UPROPERTY(transient)
+	TMap<int32, TObjectPtr<APDCharacter>> EnemyCharacters;
+
 	EGameState GameStateType;
 	int32 StageID;
 	int32 RoundIndex;
 	const int32 MaxRound = 3;
 
-	UPROPERTY(transient)
-	class UPDStageRoundSpawner* Spawner;
+	int32 CurPlayerSlotIndex;
+	int32 CurEnemySlotIndex;
+
+	FTimerHandle TurnTimer;
+	bool bIsPlayerTurn;
 };

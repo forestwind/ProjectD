@@ -13,6 +13,10 @@ APDBattleGameMode::APDBattleGameMode()
 	GameStateType = EGameState::Ready;
 	StageID = 1;
 	RoundIndex = 0;
+
+	CurPlayerSlotIndex = 0;
+	CurEnemySlotIndex = 0;
+	bIsPlayerTurn = false;
 }
 
 void APDBattleGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -32,8 +36,60 @@ void APDBattleGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GameStateType = EGameState::Ready;
+	ReadyGame();
+
+	// game state test
+	FTimerHandle StartTimer;
+	GetWorld()->GetTimerManager().SetTimer(StartTimer, this, &APDBattleGameMode::StartGame, 3.0f, false);
+}
+
+void APDBattleGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+}
+
+void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
+{
+	if (ModelManager)
+	{
+		if (bIsPlayerTurn)
+		{
+			EnemyCharacters.Remove(CurEnemySlotIndex);
+			++CurEnemySlotIndex;
+		}
+		else
+		{
+			PlayerCharacters.Remove(CurPlayerSlotIndex);
+			++CurPlayerSlotIndex;
+		}
+		ModelManager->DespawnCharacter(InUnitGuid);
+	}
+}
+
+void APDBattleGameMode::ChangeGameState(const EGameState InGameState)
+{
+	GameStateType = InGameState;
+}
+
+void APDBattleGameMode::ReadyGame()
+{
+	ChangeGameState(EGameState::Ready);
 	StartStage(StageID);
+}
+
+void APDBattleGameMode::StartGame()
+{
+	ChangeGameState(EGameState::Play);
+	GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &APDBattleGameMode::ExecuteTurn, 5.0f, true, 0.0f);
+	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
+}
+
+void APDBattleGameMode::EndGame()
+{
+	ChangeGameState(EGameState::End);
+	GetWorld()->GetTimerManager().ClearTimer(TurnTimer);
+	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][EndGame] Game Clear!!"));
 }
 
 void APDBattleGameMode::StartStage(const int32 InStageID)
@@ -83,6 +139,11 @@ void APDBattleGameMode::SpawnStageUnit()
 		{
 			if (APDCharacter* Ch = SpawnedAllies[i])
 			{
+				if (AllyUnitIdList.Num() > i)
+				{
+					PlayerCharacters.Add(i, Ch);
+				}
+
 				const FVector Loc = Ch->GetActorLocation();
 				const FRotator Rot = Ch->GetActorRotation();
 				UE_LOG(LogTemp, Log,
@@ -102,6 +163,60 @@ void APDBattleGameMode::SpawnStageUnit()
 	const TArray<FPDSpawnedStageUnitResult> SpawnedEnemies =
 		Spawner->SpawnEnemyStageRoundUnits(StageID, RoundIndex);
 
+	for (int32 i = 0; i < SpawnedEnemies.Num(); ++i)
+	{
+		int32 SlotIndex = SpawnedEnemies[i].SlotIndex;
+		if (SlotIndex >= 0)
+		{
+			EnemyCharacters.Add(SlotIndex, SpawnedEnemies[i].Character);
+		}
+	}
+
 	UE_LOG(LogTemp, Log, TEXT("[PD][BattleGameMode] StageRoundSpawner spawned %d enemy units. (StageId:%d Round:%d)"),
 		SpawnedEnemies.Num(), StageID, RoundIndex);
+}
+
+void APDBattleGameMode::ExecuteTurn()
+{
+	bIsPlayerTurn = !bIsPlayerTurn;
+	if (bIsPlayerTurn)
+	{
+		ExecutePlayerTurn();
+	}
+	else
+	{
+		ExecuteEnemyTurn();
+	}
+}
+
+void APDBattleGameMode::ExecutePlayerTurn()
+{
+	if (PlayerCharacters.Contains(CurPlayerSlotIndex) && EnemyCharacters.Contains(CurEnemySlotIndex))
+	{
+		APDCharacter* PlayerCharacter = PlayerCharacters[CurPlayerSlotIndex].Get();
+		APDCharacter* EnemyCharacter = EnemyCharacters[CurEnemySlotIndex].Get();
+		if (PlayerCharacter && EnemyCharacter)
+		{
+			PlayerCharacter->Attack(EnemyCharacter);
+			return;
+		}
+	}
+
+	EndGame();
+}
+
+void APDBattleGameMode::ExecuteEnemyTurn()
+{
+	if (PlayerCharacters.Contains(CurPlayerSlotIndex) && EnemyCharacters.Contains(CurEnemySlotIndex))
+	{
+		APDCharacter* PlayerCharacter = PlayerCharacters[CurPlayerSlotIndex].Get();
+		APDCharacter* EnemyCharacter = EnemyCharacters[CurEnemySlotIndex].Get();
+		if (PlayerCharacter && EnemyCharacter)
+		{
+			EnemyCharacter->Attack(PlayerCharacter);
+			return;
+		}
+	}
+
+	EndGame();
 }

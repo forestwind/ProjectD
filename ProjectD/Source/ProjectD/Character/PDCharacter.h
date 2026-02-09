@@ -46,6 +46,9 @@ public:
 	void UpdateUIHpBar(float Value);
 	float GetHpPercent() const { return UnitInfo.GetHPPercent(); }
 
+	void Attack(APDCharacter* InTarget);
+	void TakeDamaged(const float InDamage);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -57,9 +60,6 @@ protected:
 	void ChangeAnimation(EAIState InAIState);
 	void AnimationEnd(UAnimMontage* InMontage, bool bInterrupted);
 	void ChangeAIState(EAIState InAIState);
-
-	void Attack();
-	void TakeDamaged(const float InDamage);
 
 public:	
 	// Called every frame

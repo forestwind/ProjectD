@@ -78,7 +78,7 @@ void UModelManager::DespawnCharacter(const FGuid InUnitGuid, bool InImmediately)
 			else
 			{
 				// death character
-
+				PDCharacter->Destroy();
 			}
 		}
 		CharacterMap.Remove(InUnitGuid);
