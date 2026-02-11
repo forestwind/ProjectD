@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../PDGameModeBase.h"
+#include "../UI/Battle/PDUIBattleMainWidget.h"
 #include "PDBattleGameMode.generated.h"
 
 UENUM()
@@ -66,4 +67,11 @@ protected:
 
 	FTimerHandle TurnTimer;
 	bool bIsPlayerTurn;
+
+	/** 전투 메인 UI 위젯 (경로로 로드, UIManager Panel2D에 추가) */
+	UPROPERTY(transient)
+	TObjectPtr<UPDUIBattleMainWidget> BattleMainWidget;
+
+	/** WBP_BattleMainUI 블루프린트 경로 */
+	static const TCHAR* BattleMainWidgetPath;
 };

@@ -7,14 +7,13 @@
 #include "../../PDGameInstance.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
-#include "Engine/AssetManager.h"
-#include "Engine/StreamableManager.h"
+#include "Engine/World.h"
 
 void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	if (RootUI || bRootUILoadRequested)
+	if (RootUI)
 	{
 		return;
 	}
@@ -22,53 +21,31 @@ void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	const UPDGameInstance* PDGI = Cast<UPDGameInstance>(GetGameInstance());
 	if (!PDGI)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] GameInstance is not PDGameInstance."));
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager][Initialize] GameInstance is not PDGameInstance."));
 		return;
 	}
 
-	CachedRootUIClass = PDGI->RootUIClass;
-
-	if (CachedRootUIClass.IsNull())
+	const TSoftClassPtr<UPDUIRootWidget>& RootUIClass = PDGI->RootUIClass;
+	if (RootUIClass.IsNull())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] RootUIClass is null. Assign it in PDGameInstance."));
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager][Initialize] RootUIClass is null."));
 		return;
 	}
 
-	// 이미 로드된 경우
-	if (TSubclassOf<UPDUIRootWidget> LoadedClass = CachedRootUIClass.Get())
+	TSubclassOf<UPDUIRootWidget> LoadedClass = RootUIClass.LoadSynchronous();
+	if (LoadedClass)
 	{
 		CreateRootUI(LoadedClass);
-		return;
 	}
-
-	// Async Load
-	bRootUILoadRequested = true;
-
-	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
-	RootUIStreamableHandle = Streamable.RequestAsyncLoad(
-		CachedRootUIClass.ToSoftObjectPath(),
-		FStreamableDelegate::CreateUObject(this, &UPDUIManagerSubsystem::OnRootUIClassLoaded)
-	);
-
-	// 로드 요청이 실패(핸들 invalid)하면 재시도할 수 있도록 플래그를 원복합니다.
-	if (!RootUIStreamableHandle.IsValid())
+	else
 	{
-		bRootUILoadRequested = false;
-		UE_LOG(LogTemp, Error, TEXT("[PD][UIManager] RequestAsyncLoad failed for RootUIClass (%s)."),
-			*CachedRootUIClass.ToSoftObjectPath().ToString());
+		UE_LOG(LogTemp, Error, TEXT("[PD][UIManager] Failed to load RootUIClass."));
 	}
 }
+
 void UPDUIManagerSubsystem::Deinitialize()
 {
-	bRootUILoadRequested = false;
-
-	if (RootUIStreamableHandle.IsValid())
-	{
-		RootUIStreamableHandle->CancelHandle();
-		RootUIStreamableHandle.Reset();
-	}
-
-	CachedRootUIClass.Reset();
+	bRootUIAddedToViewport = false;
 
 	if (RootUI)
 	{
@@ -98,44 +75,41 @@ void UPDUIManagerSubsystem::CreateRootUI(TSubclassOf<UPDUIRootWidget> RootWidget
 		return;
 	}
 
-	RootUI->AddToViewport(0);
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][UIManager] RootUI created: %s"), *RootUI->GetName());
+	// AddToViewport는 뷰포트가 준비된 뒤 첫 사용 시(EnsureRootUIAddedToViewport)에 수행
 }
 
-void UPDUIManagerSubsystem::OnRootUIClassLoaded()
+void UPDUIManagerSubsystem::EnsureRootUIAddedToViewport()
 {
-	bRootUILoadRequested = false;
-	RootUIStreamableHandle.Reset();
-
-	if (RootUI)
+	if (!RootUI || bRootUIAddedToViewport)
 	{
 		return;
 	}
 
-	if (!GetGameInstance())
+	UGameInstance* GI = GetGameInstance();
+	UWorld* World = GI ? GI->GetWorld() : nullptr;
+	if (!World || !World->GetGameViewport())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] GameInstance is invalid when RootUI loaded."));
 		return;
 	}
 
-	TSubclassOf<UPDUIRootWidget> LoadedClass = CachedRootUIClass.Get();
-	if (!LoadedClass)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[PD][UIManager] Failed to load RootUIClass."));
-		return;
-	}
-
-	CreateRootUI(LoadedClass);
+	RootUI->AddToViewport(0);
+	bRootUIAddedToViewport = true;
 }
-
 
 void UPDUIManagerSubsystem::AddWidgetToPanel2D(UUserWidget* Widget)
 {
-	if (!RootUI || !Widget)
+	if (!Widget)
 	{
 		return;
 	}
+
+	if (!RootUI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidgetToPanel2D failed: RootUI is null. Widget=%s"), Widget ? *Widget->GetName() : TEXT("null"));
+		return;
+	}
+
+	EnsureRootUIAddedToViewport();
 
 	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
 	if (!Panel2D)
@@ -153,10 +127,18 @@ void UPDUIManagerSubsystem::AddWidgetToPanel2D(UUserWidget* Widget)
 
 void UPDUIManagerSubsystem::AddWidgetToPanelOverlay(UUserWidget* Widget)
 {
-	if (!RootUI || !Widget)
+	if (!Widget)
 	{
 		return;
 	}
+
+	if (!RootUI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidgetToPanelOverlay failed: RootUI is null. Widget=%s"), Widget ? *Widget->GetName() : TEXT("null"));
+		return;
+	}
+
+	EnsureRootUIAddedToViewport();
 
 	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
 	if (!PanelOverlay)

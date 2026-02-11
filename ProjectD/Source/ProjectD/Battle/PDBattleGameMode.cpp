@@ -3,9 +3,11 @@
 
 #include "PDBattleGameMode.h"
 
+#include "Blueprint/UserWidget.h"
 #include "../Manager/ModelManager.h"
 #include "../Manager/PDStageRoundSpawner.h"
 #include "../Character/PDCharacter.h"
+#include "../UI/Core/PDUIManagerSubsystem.h"
 
 
 APDBattleGameMode::APDBattleGameMode()
@@ -78,11 +80,28 @@ void APDBattleGameMode::ReadyGame()
 	StartStage(StageID);
 }
 
+const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C");
+
 void APDBattleGameMode::StartGame()
 {
 	ChangeGameState(EGameState::Play);
 	GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &APDBattleGameMode::ExecuteTurn, 5.0f, true, 0.0f);
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
+
+	// WBP_BattleMainUI 경로로 로드 후 UIManager Panel2D에 추가
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
+	if (UIManager)
+	{
+		if (UClass* WidgetClass = LoadClass<UPDUIBattleMainWidget>(nullptr, BattleMainWidgetPath))
+		{
+			BattleMainWidget = CreateWidget<UPDUIBattleMainWidget>(GI, WidgetClass);
+			if (BattleMainWidget)
+			{
+				UIManager->AddWidgetToPanel2D(BattleMainWidget);
+			}
+		}
+	}
 }
 
 void APDBattleGameMode::EndGame()

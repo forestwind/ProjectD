@@ -4,8 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
-#include "UObject/SoftObjectPtr.h"
-#include "Engine/StreamableManager.h"
 #include "PDUIManagerSubsystem.generated.h"
 
 class UUserWidget;
@@ -41,12 +39,10 @@ protected:
 
 private:
 	void CreateRootUI(TSubclassOf<UPDUIRootWidget> RootWidgetClass);
-	void OnRootUIClassLoaded();
+	/** 뷰포트 준비 시점까지 미룬 AddToViewport (첫 사용 시 1회 호출) */
+	void EnsureRootUIAddedToViewport();
 
 private:
-	TSoftClassPtr<UPDUIRootWidget> CachedRootUIClass;
-	bool bRootUILoadRequested = false;
-
-	/** Async Load 취소/관리용 */
-	TSharedPtr<FStreamableHandle> RootUIStreamableHandle;
+	/** RootUI를 Viewport에 붙였는지 (Deinitialize 시 false로 리셋) */
+	bool bRootUIAddedToViewport = false;
 };
