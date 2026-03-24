@@ -45,4 +45,6 @@ private:
 private:
 	/** RootUI를 Viewport에 붙였는지 (Deinitialize 시 false로 리셋) */
 	bool bRootUIAddedToViewport = false;
+
+	void HandlePostLoadMap(UWorld* LoadedWorld);
 };

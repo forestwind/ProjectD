@@ -8,6 +8,7 @@
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Engine/World.h"
+#include "UObject/UObjectGlobals.h"
 
 void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -41,6 +42,9 @@ void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		UE_LOG(LogTemp, Error, TEXT("[PD][UIManager] Failed to load RootUIClass."));
 	}
+
+	// 레벨 로드 후 콜백 등록
+	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UPDUIManagerSubsystem::HandlePostLoadMap);
 }
 
 void UPDUIManagerSubsystem::Deinitialize()
@@ -52,6 +56,8 @@ void UPDUIManagerSubsystem::Deinitialize()
 		RootUI->RemoveFromParent();
 		RootUI = nullptr;
 	}
+
+	FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
 
 	Super::Deinitialize();
 }
@@ -80,7 +86,7 @@ void UPDUIManagerSubsystem::CreateRootUI(TSubclassOf<UPDUIRootWidget> RootWidget
 
 void UPDUIManagerSubsystem::EnsureRootUIAddedToViewport()
 {
-	if (!RootUI || bRootUIAddedToViewport)
+	if (!RootUI)
 	{
 		return;
 	}
@@ -92,8 +98,12 @@ void UPDUIManagerSubsystem::EnsureRootUIAddedToViewport()
 		return;
 	}
 
-	RootUI->AddToViewport(0);
-	bRootUIAddedToViewport = true;
+	if (!RootUI->IsInViewport())
+	{
+		RootUI->AddToViewport(0);
+	}
+
+	bRootUIAddedToViewport = RootUI->IsInViewport();
 }
 
 void UPDUIManagerSubsystem::AddWidgetToPanel2D(UUserWidget* Widget)
@@ -180,6 +190,17 @@ void UPDUIManagerSubsystem::ClearPanelOverlay()
 	{
 		PanelOverlay->ClearChildren();
 	}
+}
+
+void UPDUIManagerSubsystem::HandlePostLoadMap(UWorld* LoadedWorld)
+{
+	if (!LoadedWorld)
+	{
+		return;
+	}
+
+	// 레벨 전환 후 새 Viewport 기준으로 RootUI 재부착
+	EnsureRootUIAddedToViewport();
 }
 
 
