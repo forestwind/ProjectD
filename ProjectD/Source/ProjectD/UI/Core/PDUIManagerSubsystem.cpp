@@ -4,7 +4,7 @@
 #include "PDUIManagerSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "PDUIRootWidget.h"
-#include "../../PDGameInstance.h"
+#include "PDGameInstance.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Engine/World.h"

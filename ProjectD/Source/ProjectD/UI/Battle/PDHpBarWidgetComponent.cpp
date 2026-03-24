@@ -2,7 +2,7 @@
 
 #include "PDHpBarWidgetComponent.h"
 #include "PDUIBattleHpBarWidget.h"
-#include "../../Character/PDCharacter.h"
+#include "Character/PDCharacter.h"
 
 UPDHpBarWidgetComponent::UPDHpBarWidgetComponent()
 {

@@ -24,3 +24,11 @@ void APDGameModeBase::BeginDestroy()
 
 	Super::BeginDestroy();
 }
+
+void APDGameModeBase::AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID)
+{
+	if (ModelManager)
+	{
+		ModelManager->AddCharacter(PDCharacter, InUnitID);
+	}
+}

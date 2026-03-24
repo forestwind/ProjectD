@@ -21,6 +21,8 @@ public:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void BeginDestroy() override;
 
+	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID);
+
 protected:
 	UPROPERTY(transient)
 	TObjectPtr<UModelManager> ModelManager;

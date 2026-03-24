@@ -3,10 +3,10 @@
 
 #include "ModelManager.h"
 
-#include "../Character/PDCharacter.h"
-#include "../Table/PDTableManagerSubsystem.h"
-#include "../Table/PDUnitRow.h"
-#include "../DataAsset/PDUnitDataAsset.h"
+#include "Character/PDCharacter.h"
+#include "Table/PDTableManagerSubsystem.h"
+#include "Table/PDUnitRow.h"
+#include "DataAsset/PDUnitDataAsset.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -55,12 +55,7 @@ APDCharacter* UModelManager::SpawnCharacter(const int32 InUnitID, const FVector&
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	APDCharacter* PDCharacter = GetWorld()->SpawnActor<APDCharacter>(ObjectClass, InPosition, InRotation, SpawnInfo);
-	if (PDCharacter)
-	{
-		FGuid NewGuid = FGuid::NewGuid();
-		PDCharacter->SetInfo(InUnitID, NewGuid);
-		CharacterMap.Add(NewGuid, PDCharacter);
-	}
+	AddCharacter(PDCharacter, InUnitID);
 
 	return PDCharacter;
 }
@@ -94,4 +89,16 @@ APDCharacter* UModelManager::FindCharacter(const FGuid InUnitGuid)
 	}
 
 	return PDCharacter;
+}
+
+void UModelManager::AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID)
+{
+	if (PDCharacter == nullptr)
+	{
+		return;
+	}
+
+	FGuid NewGuid = FGuid::NewGuid();
+	PDCharacter->SetInfo(InUnitID, NewGuid);
+	CharacterMap.Add(NewGuid, PDCharacter);
 }

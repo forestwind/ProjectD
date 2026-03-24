@@ -4,21 +4,18 @@
 #include "PDBattleGameMode.h"
 
 #include "Blueprint/UserWidget.h"
-#include "../Manager/ModelManager.h"
-#include "../Manager/PDStageRoundSpawner.h"
-#include "../Character/PDCharacter.h"
-#include "../UI/Core/PDUIManagerSubsystem.h"
-
+#include "Manager/ModelManager.h"
+#include "Manager/PDStageRoundSpawner.h"
+#include "Character/PDCharacter.h"
+#include "UI/Core/PDUIManagerSubsystem.h"
+#include "Table/PDTableManagerSubsystem.h"
+#include "Player/PDPlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
 APDBattleGameMode::APDBattleGameMode()
 {
 	GameStateType = EGameState::Ready;
 	StageID = 1;
-	RoundIndex = 0;
-
-	CurPlayerSlotIndex = 0;
-	CurEnemySlotIndex = 0;
-	bIsPlayerTurn = false;
 }
 
 void APDBattleGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -51,20 +48,31 @@ void APDBattleGameMode::Tick(float DeltaSeconds)
 
 }
 
+void APDBattleGameMode::RestartPlayer(AController* NewPlayer)
+{
+	if (APDPlayerController* PDPlayerController = Cast<APDPlayerController>(NewPlayer))
+	{
+		UPDTableManagerSubsystem* TableManager = UGameInstance::GetSubsystem<UPDTableManagerSubsystem>(UGameplayStatics::GetGameInstance(this));
+		if (TableManager == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Invalid TableManager"));
+			return;
+		}
+
+		DefaultPawnClass = TableManager->GetUnitBP(PDPlayerController->GetPlayerUnitID());
+		if (DefaultPawnClass == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][RestartPlayer] Invalid DefaultPawnClass!!"));
+		}
+	}
+	
+	Super::RestartPlayer(NewPlayer);
+}
+
 void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 {
 	if (ModelManager)
 	{
-		if (bIsPlayerTurn)
-		{
-			EnemyCharacters.Remove(CurEnemySlotIndex);
-			++CurEnemySlotIndex;
-		}
-		else
-		{
-			PlayerCharacters.Remove(CurPlayerSlotIndex);
-			++CurPlayerSlotIndex;
-		}
 		ModelManager->DespawnCharacter(InUnitGuid);
 	}
 }
@@ -85,7 +93,6 @@ const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP
 void APDBattleGameMode::StartGame()
 {
 	ChangeGameState(EGameState::Play);
-	GetWorld()->GetTimerManager().SetTimer(TurnTimer, this, &APDBattleGameMode::ExecuteTurn, 5.0f, true, 0.0f);
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
 
 	// WBP_BattleMainUI 경로로 로드 후 UIManager Panel2D에 추가
@@ -107,21 +114,13 @@ void APDBattleGameMode::StartGame()
 void APDBattleGameMode::EndGame()
 {
 	ChangeGameState(EGameState::End);
-	GetWorld()->GetTimerManager().ClearTimer(TurnTimer);
+
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][EndGame] Game Clear!!"));
 }
 
 void APDBattleGameMode::StartStage(const int32 InStageID)
 {
 	StageID = InStageID;
-	RoundIndex = 0;
-	StartRound(RoundIndex);
-}
-
-void APDBattleGameMode::StartRound(const int32 InRoundIndex)
-{
-	RoundIndex = InRoundIndex;
-	SpawnStageUnit();
 }
 
 void APDBattleGameMode::SpawnStageUnit()
@@ -138,104 +137,6 @@ void APDBattleGameMode::SpawnStageUnit()
 		return;
 	}
 
-	// ===== Ally Spawn =====
-	if (RoundIndex == 0)	// Only stage start
-	{
-		TArray<int32> AllyUnitIdList;
-		AllyUnitIdList.Add(1); // SlotIndex 0
-		AllyUnitIdList.Add(2); // SlotIndex 1
-		AllyUnitIdList.Add(3); // SlotIndex 2
-		AllyUnitIdList.Add(4); // SlotIndex 3
-		AllyUnitIdList.Add(5); // SlotIndex 4 - 0 대입시 Skip
-
-		const TArray<APDCharacter*> SpawnedAllies =
-			Spawner->SpawnAllyStageRoundUnits(StageID, RoundIndex, AllyUnitIdList);
-
-		UE_LOG(LogTemp, Log, TEXT("[PD][BattleGameMode] StageRoundSpawner spawned %d ally units. (StageId:%d Round:%d)"),
-			SpawnedAllies.Num(), StageID, RoundIndex);
-
-		for (int32 i = 0; i < SpawnedAllies.Num(); ++i)
-		{
-			if (APDCharacter* Ch = SpawnedAllies[i])
-			{
-				if (AllyUnitIdList.Num() > i)
-				{
-					PlayerCharacters.Add(i, Ch);
-				}
-
-				const FVector Loc = Ch->GetActorLocation();
-				const FRotator Rot = Ch->GetActorRotation();
-				UE_LOG(LogTemp, Log,
-					TEXT("[PD][BattleGameMode] Ally[%d] Spawned - Loc:%s Rot:%s"),
-					i, *Loc.ToString(), *Rot.ToString());
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning,
-					TEXT("[PD][BattleGameMode] Ally[%d] is null (spawn may have failed)."),
-					i);
-			}
-		}
-	}
-
 	// ===== Enemy Spawn =====
-	const TArray<FPDSpawnedStageUnitResult> SpawnedEnemies =
-		Spawner->SpawnEnemyStageRoundUnits(StageID, RoundIndex);
 
-	for (int32 i = 0; i < SpawnedEnemies.Num(); ++i)
-	{
-		int32 SlotIndex = SpawnedEnemies[i].SlotIndex;
-		if (SlotIndex >= 0)
-		{
-			EnemyCharacters.Add(SlotIndex, SpawnedEnemies[i].Character);
-		}
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][BattleGameMode] StageRoundSpawner spawned %d enemy units. (StageId:%d Round:%d)"),
-		SpawnedEnemies.Num(), StageID, RoundIndex);
-}
-
-void APDBattleGameMode::ExecuteTurn()
-{
-	bIsPlayerTurn = !bIsPlayerTurn;
-	if (bIsPlayerTurn)
-	{
-		ExecutePlayerTurn();
-	}
-	else
-	{
-		ExecuteEnemyTurn();
-	}
-}
-
-void APDBattleGameMode::ExecutePlayerTurn()
-{
-	if (PlayerCharacters.Contains(CurPlayerSlotIndex) && EnemyCharacters.Contains(CurEnemySlotIndex))
-	{
-		APDCharacter* PlayerCharacter = PlayerCharacters[CurPlayerSlotIndex].Get();
-		APDCharacter* EnemyCharacter = EnemyCharacters[CurEnemySlotIndex].Get();
-		if (PlayerCharacter && EnemyCharacter)
-		{
-			PlayerCharacter->Attack(EnemyCharacter);
-			return;
-		}
-	}
-
-	EndGame();
-}
-
-void APDBattleGameMode::ExecuteEnemyTurn()
-{
-	if (PlayerCharacters.Contains(CurPlayerSlotIndex) && EnemyCharacters.Contains(CurEnemySlotIndex))
-	{
-		APDCharacter* PlayerCharacter = PlayerCharacters[CurPlayerSlotIndex].Get();
-		APDCharacter* EnemyCharacter = EnemyCharacters[CurEnemySlotIndex].Get();
-		if (PlayerCharacter && EnemyCharacter)
-		{
-			EnemyCharacter->Attack(PlayerCharacter);
-			return;
-		}
-	}
-
-	EndGame();
 }

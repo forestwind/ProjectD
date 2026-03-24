@@ -22,6 +22,7 @@ public:
 	APDCharacter* SpawnCharacter(const int32 InUnitID, const FVector& InPosition, const FRotator& InRotation);
 	void DespawnCharacter(const FGuid InUnitGuid, bool InImmediately = false);
 	APDCharacter* FindCharacter(const FGuid InUnitGuid);
+	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID);
 
 private:
 	UPROPERTY(transient)

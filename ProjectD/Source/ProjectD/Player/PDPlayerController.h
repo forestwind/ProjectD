@@ -14,4 +14,11 @@ class PROJECTD_API APDPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void OnPossess(APawn* aPawn) override;
+
+	int32 GetPlayerUnitID() const { return PlayerUnitID; }
+
+protected:
+	int32 PlayerUnitID = 1;
 };

@@ -2,16 +2,16 @@
 
 
 #include "PDCharacter.h"
-#include "../UI/Battle/PDHpBarWidgetComponent.h"
+#include "UI/Battle/PDHpBarWidgetComponent.h"
 #include "PDAIController.h"
 #include "Engine/GameInstance.h"
-#include "../Table/PDTableManagerSubsystem.h"
-#include "../DataAsset/PDUnitDataAsset.h"
-#include "../DataAsset/Stage/PDStageDataAsset.h"
-#include "../Table/PDUnitRow.h"
-#include "../Table/PDUnitStatRow.h"
-#include "../Table/PDUnitLevelRow.h"
-#include "../Battle/PDBattleGameMode.h"
+#include "Table/PDTableManagerSubsystem.h"
+#include "DataAsset/PDUnitDataAsset.h"
+#include "DataAsset/Stage/PDStageDataAsset.h"
+#include "Table/PDUnitRow.h"
+#include "Table/PDUnitStatRow.h"
+#include "Table/PDUnitLevelRow.h"
+#include "Battle/PDBattleGameMode.h"
 
 // Sets default values
 APDCharacter::APDCharacter()
@@ -199,6 +199,7 @@ void APDCharacter::LoadAnimation()
 	{
 		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid VictoryMontage [UnitID: %d]"), UnitID);
 	}
+	ChangeAIState(EAIState::Idle);
 }
 
 void APDCharacter::ChangeAnimation(EAIState InAIState)

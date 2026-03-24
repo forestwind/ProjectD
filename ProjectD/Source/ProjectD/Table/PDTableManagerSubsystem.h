@@ -91,6 +91,9 @@ public:
 	// MonsterGroup ID로 몬스터 그룹 데이터 조회
 	const FPDMonsterGroupRow* GetMonsterGroup(int32 MonsterGroupID) const;
 
+	// 유닛 BP 조회
+	UClass* GetUnitBP(const int32 InUnitID);
+
 	UFUNCTION(BlueprintCallable, Category = "Table|Unit")
 	UDataTable* GetUnitDataTable() const { return UnitDataTable; }
 

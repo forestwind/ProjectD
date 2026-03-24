@@ -248,6 +248,27 @@ const FPDMonsterGroupRow* UPDTableManagerSubsystem::GetMonsterGroup(int32 Monste
 	return FoundRow ? *FoundRow : nullptr;
 }
 
+UClass* UPDTableManagerSubsystem::GetUnitBP(const int32 InUnitID)
+{
+	const FPDUnitRow* UnitData = GetUnit(InUnitID);
+	if (UnitData == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid UnitData %d"), InUnitID);
+		return nullptr;
+	}
+
+	UPDUnitDataAsset* UnitAsset = GetUnitDataAssetByName(UnitData->DataAssetName);
+	if (!UnitAsset)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][Test] Failed to load UnitDataAsset: %s"), *UnitData->DataAssetName);
+		return nullptr;
+	}
+
+	const FString UnitBPPath = UnitAsset->UnitBP.ToSoftObjectPath().ToString();
+	UClass* ObjectClass = StaticLoadClass(UObject::StaticClass(), NULL, *UnitBPPath, NULL, LOAD_None, NULL);
+	return ObjectClass;
+}
+
 UPDUnitDataAsset* UPDTableManagerSubsystem::GetUnitDataAssetByName(const FString& AssetName, bool bForceReload /*=false*/)
 {
 	const FString ObjectPathStr = MakeUnitDataAssetObjectPathFromName(AssetName);

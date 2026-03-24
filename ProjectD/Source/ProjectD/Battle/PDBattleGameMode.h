@@ -31,6 +31,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	virtual void RestartPlayer(AController* NewPlayer) override;
+
 	void DespawnUnit(const FGuid& InUnitGuid);
 
 protected:
@@ -40,33 +42,14 @@ protected:
 	void EndGame();
 
 	void StartStage(const int32 InStageID);
-	void StartRound(const int32 InRoundIndex);
 	void SpawnStageUnit();
-
-	void ExecuteTurn();
-	void ExecutePlayerTurn();
-	void ExecuteEnemyTurn();
 
 protected:
 	UPROPERTY(transient)
 	class UPDStageRoundSpawner* Spawner;
 
-	UPROPERTY(transient)
-	TMap<int32, TObjectPtr<APDCharacter>> PlayerCharacters;
-
-	UPROPERTY(transient)
-	TMap<int32, TObjectPtr<APDCharacter>> EnemyCharacters;
-
 	EGameState GameStateType;
 	int32 StageID;
-	int32 RoundIndex;
-	const int32 MaxRound = 3;
-
-	int32 CurPlayerSlotIndex;
-	int32 CurEnemySlotIndex;
-
-	FTimerHandle TurnTimer;
-	bool bIsPlayerTurn;
 
 	/** 전투 메인 UI 위젯 (경로로 로드, UIManager Panel2D에 추가) */
 	UPROPERTY(transient)

@@ -3,12 +3,12 @@
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
-#include "../Character/PDCharacter.h"
-#include "../DataAsset/Stage/PDStageDataAsset.h"
-#include "../DataAsset/Stage/StageTypes.h"
-#include "../Table/PDMonsterGroupRow.h"
-#include "../Table/PDStageRow.h"
-#include "../Table/PDTableManagerSubsystem.h"
+#include "Character/PDCharacter.h"
+#include "DataAsset/Stage/PDStageDataAsset.h"
+#include "DataAsset/Stage/StageTypes.h"
+#include "Table/PDMonsterGroupRow.h"
+#include "Table/PDStageRow.h"
+#include "Table/PDTableManagerSubsystem.h"
 #include "ModelManager.h"
 
 namespace
