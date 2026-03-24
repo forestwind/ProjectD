@@ -263,6 +263,12 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 
 void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 {
+	// 종료/레벨전환 중 인터럽트된 콜백은 무시
+	if (bInterrupted)
+	{
+		return;
+	}
+
 	if (InMontage == DieMontage)
 	{
 		if (APDBattleGameMode* BattleGameMode = Cast<APDBattleGameMode>(GetWorld()->GetAuthGameMode()))
