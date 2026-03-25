@@ -44,6 +44,9 @@ public:
 	TSoftObjectPtr<UAnimMontage> DieMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit|Animation")
+	TSoftObjectPtr<UAnimMontage> MoveMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit|Animation")
 	TSoftObjectPtr<UAnimMontage> VictoryMontage;
 };
 

@@ -85,6 +85,9 @@ protected:
 	UAnimMontage* DieMontage;
 
 	UPROPERTY()
+	UAnimMontage* MoveMontage;
+
+	UPROPERTY()
 	UAnimMontage* VictoryMontage;
 
 	/** 캐릭터 머리 위 HP 바 (생성/클래스 로드/갱신은 컴포넌트에서 담당) */
