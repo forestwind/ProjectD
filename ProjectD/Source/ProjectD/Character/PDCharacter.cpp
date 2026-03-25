@@ -198,10 +198,16 @@ void APDCharacter::LoadAnimation()
 		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid DieMontage [UnitID: %d]"), UnitID);
 	}
 
+	MoveMontage = UnitAsset->MoveMontage.LoadSynchronous();
+	if (MoveMontage == nullptr)
+	{
+		//UE_LOG(LogTemp, Log, TEXT("[PD] Invalid MoveMontage [UnitID: %d]"), UnitID);
+	}
+
 	VictoryMontage = UnitAsset->VictoryMontage.LoadSynchronous();
 	if (VictoryMontage == nullptr)
 	{
-		UE_LOG(LogTemp, Log, TEXT("[PD] Invalid VictoryMontage [UnitID: %d]"), UnitID);
+		//UE_LOG(LogTemp, Log, TEXT("[PD] Invalid VictoryMontage [UnitID: %d]"), UnitID);
 	}
 	ChangeAIState(EAIState::Idle);
 }
