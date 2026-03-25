@@ -12,9 +12,6 @@ class UPDUnitDataAsset;
 class UPDHpBarWidgetComponent;
 enum class EAIState : uint8;
 
-class USpringArmComponent;
-class UCameraComponent;
-
 class FUnitInfo
 {
 public:
@@ -94,19 +91,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "UI")
 	TObjectPtr<UPDHpBarWidgetComponent> HpBarWidgetComponent;
 
-	// 플레이어 전용 카메라 컴포넌트
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	TObjectPtr<USpringArmComponent> PlayerCameraBoom;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
-	TObjectPtr<UCameraComponent> PlayerFollowCamera;
-
 protected:
 	FGuid UnitGuid;
 	int32 UnitID;
 
 	FUnitInfo UnitInfo;
-
-public:
-	void CreatePlayerCameraRig();
 };
