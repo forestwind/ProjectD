@@ -13,6 +13,10 @@
 #include "Table/PDUnitLevelRow.h"
 #include "Battle/PDBattleGameMode.h"
 
+#include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+
 // Sets default values
 APDCharacter::APDCharacter()
 {
@@ -289,5 +293,32 @@ void APDCharacter::ChangeAIState(EAIState InAIState)
 	{
 		ChangeAnimation(InAIState);
 		PDAIController->ChangeAIState(InAIState);
+	}
+}
+
+void APDCharacter::CreatePlayerCameraRig()
+{
+	if (PlayerCameraBoom != nullptr && PlayerFollowCamera != nullptr)
+	{
+		return;
+	}
+
+	PlayerCameraBoom = NewObject<USpringArmComponent>(this, TEXT("PlayerCameraBoom"));
+	PlayerCameraBoom->SetupAttachment(GetRootComponent());
+	PlayerCameraBoom->TargetArmLength = 700.0f;
+	PlayerCameraBoom->bUsePawnControlRotation = true;
+	PlayerCameraBoom->bInheritPitch = true;
+	PlayerCameraBoom->bInheritYaw = true;
+	PlayerCameraBoom->bInheritRoll = false;
+	PlayerCameraBoom->RegisterComponent();
+
+	PlayerFollowCamera = NewObject<UCameraComponent>(this, TEXT("PlayerFollowCamera"));
+	PlayerFollowCamera->SetupAttachment(PlayerCameraBoom, USpringArmComponent::SocketName);
+	PlayerFollowCamera->RegisterComponent();
+	bUseControllerRotationYaw = false;
+
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		MoveComp->bOrientRotationToMovement = true;
 	}
 }

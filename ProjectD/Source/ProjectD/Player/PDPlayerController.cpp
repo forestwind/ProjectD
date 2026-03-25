@@ -10,6 +10,14 @@ void APDPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
+	if (IsLocalPlayerController())
+	{
+		if (APDCharacter* PDCharacter = Cast<APDCharacter>(aPawn))
+		{
+			PDCharacter->CreatePlayerCameraRig();
+		}
+	}
+
 	APDCharacter* PDCharacter = Cast<APDCharacter>(aPawn);
 	if (APDGameModeBase* PDGameModeBase = Cast<APDGameModeBase>(GetWorld()->GetAuthGameMode()))
 	{
