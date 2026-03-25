@@ -7,6 +7,13 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
+#include "GameFramework/PlayerController.h"
+
+
 // Sets default values
 APDPlayerCharacter::APDPlayerCharacter()
 {
@@ -31,5 +38,70 @@ APDPlayerCharacter::APDPlayerCharacter()
 	{
 		MoveComp->bOrientRotationToMovement = true;
 		MoveComp->RotationRate = FRotator(0.f, 720.f, 0.f);
+	}
+
+
+	static const TCHAR* MoveIMCPath =
+		TEXT("/Game/Input/IMC_BattlePlayer.IMC_BattlePlayer");
+	static const TCHAR* MoveActionPath =
+		TEXT("/Game/Input/IA_BattlePlayerMove.IA_BattlePlayerMove");
+	MoveMappingContext = LoadObject<UInputMappingContext>(nullptr, MoveIMCPath);
+	MoveAction = LoadObject<UInputAction>(nullptr, MoveActionPath);
+}
+
+void APDPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (!PlayerInputComponent) return;
+
+	if (MoveMappingContext)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC)
+		{
+			if (ULocalPlayer* LP = PC->GetLocalPlayer())
+			{
+				if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>())
+				{
+					Subsystem->RemoveMappingContext(MoveMappingContext);
+					Subsystem->AddMappingContext(MoveMappingContext, 0);
+				}
+			}
+		}
+	}
+
+	if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		if (MoveAction)
+		{
+			// 연속 입력: Triggered 사용
+			EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APDPlayerCharacter::HandleMove);
+		}
+	}
+}
+
+void APDPlayerCharacter::HandleMove(const FInputActionValue& Value)
+{
+	const FVector2D Axis = Value.Get<FVector2D>();
+	if (Axis.IsNearlyZero()) return;
+
+	// 쿼터뷰 고정 카메라 기준으로 화면 위/아래, 좌/우를 월드 평면 방향으로 변환한다.
+	const FVector CameraForward = FollowCamera ? FollowCamera->GetForwardVector() : GetActorForwardVector();
+	const FVector CameraRight = FollowCamera ? FollowCamera->GetRightVector() : GetActorRightVector();
+
+	const FVector PlanarForward = FVector(CameraForward.X, CameraForward.Y, 0.f).GetSafeNormal();
+	const FVector PlanarRight = FVector(CameraRight.X, CameraRight.Y, 0.f).GetSafeNormal();
+
+	if (PlanarForward.IsNearlyZero() || PlanarRight.IsNearlyZero())
+	{
+		return;
+	}
+
+	const FVector MoveDirection = PlanarForward * Axis.Y + PlanarRight * Axis.X;
+	const float InputScale = FMath::Min(Axis.Length(), 1.0f);
+	if (!MoveDirection.IsNearlyZero() && InputScale > 0.0f)
+	{
+		AddMovementInput(MoveDirection.GetSafeNormal(), InputScale);
 	}
 }

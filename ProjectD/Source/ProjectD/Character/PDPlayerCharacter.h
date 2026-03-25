@@ -4,11 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Character/PDCharacter.h"
+#include "InputActionValue.h"
 #include "PDPlayerCharacter.generated.h"
 
 class USpringArmComponent;
 class UCameraComponent;
 
+class UInputAction;
+class UInputMappingContext;
 /**
  * 
  */
@@ -27,4 +30,18 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<UCameraComponent> FollowCamera;
+
+
+	// Enhanced Input 에셋
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> MoveMappingContext;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> MoveAction;
+
+protected:
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	void HandleMove(const FInputActionValue& Value);
 };
