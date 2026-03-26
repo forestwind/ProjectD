@@ -24,6 +24,8 @@ class PROJECTD_API APDPlayerCharacter : public APDCharacter
 
 protected:
 
+	virtual void PossessedBy(AController* NewController) override;
+
 	// 플레이어 전용 카메라 컴포넌트
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	TObjectPtr<USpringArmComponent> CameraBoom;
@@ -44,4 +46,6 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	void HandleMove(const FInputActionValue& Value);
+
+	void ApplyCameraSettings();
 };

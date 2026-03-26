@@ -22,11 +22,7 @@ APDPlayerCharacter::APDPlayerCharacter()
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
-	CameraBoom->TargetArmLength = 400.0f;
-	CameraBoom->bUsePawnControlRotation = true;
-	CameraBoom->bInheritPitch = true;
-	CameraBoom->bInheritYaw = true;
-	CameraBoom->bInheritRoll = false;
+	
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
@@ -47,6 +43,13 @@ APDPlayerCharacter::APDPlayerCharacter()
 		TEXT("/Game/Input/IA_BattlePlayerMove.IA_BattlePlayerMove");
 	MoveMappingContext = LoadObject<UInputMappingContext>(nullptr, MoveIMCPath);
 	MoveAction = LoadObject<UInputAction>(nullptr, MoveActionPath);
+}
+
+void APDPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	ApplyCameraSettings();
 }
 
 void APDPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -103,5 +106,28 @@ void APDPlayerCharacter::HandleMove(const FInputActionValue& Value)
 	if (!MoveDirection.IsNearlyZero() && InputScale > 0.0f)
 	{
 		AddMovementInput(MoveDirection.GetSafeNormal(), InputScale);
+	}
+}
+
+void APDPlayerCharacter::ApplyCameraSettings()
+{
+	if (CameraBoom)
+	{
+		CameraBoom->bUsePawnControlRotation = false;
+		CameraBoom->bInheritPitch = false;
+		CameraBoom->bInheritYaw = false;
+		CameraBoom->bInheritRoll = false;
+		CameraBoom->SetUsingAbsoluteRotation(true);
+
+		CameraBoom->TargetArmLength = 700.0f;
+		CameraBoom->SocketOffset = FVector(0.0f, 0.0f, 200.0f);
+
+		const float BaseYaw = Controller ? Controller->GetControlRotation().Yaw : GetActorRotation().Yaw;
+		CameraBoom->SetWorldRotation(FRotator(-20.0f, BaseYaw, 0.0f));
+	}
+
+	if (FollowCamera)
+	{
+		FollowCamera->bUsePawnControlRotation = false;
 	}
 }
