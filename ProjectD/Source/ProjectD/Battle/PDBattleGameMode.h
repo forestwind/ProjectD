@@ -45,8 +45,6 @@ protected:
 	void SpawnStageUnit();
 
 protected:
-	UPROPERTY(transient)
-	class UPDStageRoundSpawner* Spawner;
 
 	EGameState GameStateType;
 	int32 StageID;

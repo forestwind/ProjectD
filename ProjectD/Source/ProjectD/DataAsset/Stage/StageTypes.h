@@ -16,17 +16,12 @@ struct FStageUnitSpawnPoint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn")
 	FRotator Rotation = FRotator::ZeroRotator;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn")
-	int32 SlotIndex = 0;
 };
 
 USTRUCT(BlueprintType)
-struct FStageRoundSpawnData
+struct FStageSpawnData
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn")
-	TArray<FStageUnitSpawnPoint> AllySpawnPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawn")
 	TArray<FStageUnitSpawnPoint> EnemySpawnPoints;

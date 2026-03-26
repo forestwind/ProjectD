@@ -5,7 +5,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Manager/ModelManager.h"
-#include "Manager/PDStageRoundSpawner.h"
+#include "Battle/PDBattleSpawnActor.h"
 #include "Character/PDCharacter.h"
 #include "UI/Core/PDUIManagerSubsystem.h"
 #include "Table/PDTableManagerSubsystem.h"
@@ -21,14 +21,6 @@ APDBattleGameMode::APDBattleGameMode()
 void APDBattleGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
-
-	Spawner = NewObject<UPDStageRoundSpawner>(this);
-	if (!Spawner)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][InitGame] Spawner is null."));
-		return;
-	}
-	Spawner->Initialize(ModelManager);
 }
 
 void APDBattleGameMode::BeginPlay()
@@ -86,6 +78,7 @@ void APDBattleGameMode::ReadyGame()
 {
 	ChangeGameState(EGameState::Ready);
 	StartStage(StageID);
+	SpawnStageUnit();
 }
 
 const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C");
@@ -131,12 +124,41 @@ void APDBattleGameMode::SpawnStageUnit()
 		return;
 	}
 
-	if (!Spawner)
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APDBattleSpawnActor::StaticClass(), FoundActors);
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][BattleGameMode][SpawnStageUnit] Found SpawnActor Count: %d"), FoundActors.Num());
+
+	for (AActor* FoundActor : FoundActors)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][InitGame] Spawner is null."));
-		return;
+		const APDBattleSpawnActor* SpawnActor = Cast<APDBattleSpawnActor>(FoundActor);
+		if (!SpawnActor)
+		{
+			continue;
+		}
+
+		const TCHAR* SpawnTypeText = TEXT("None");
+		switch (SpawnActor->SpawnType)
+		{
+		case EPDBattleSpawnType::Enemy:
+			SpawnTypeText = TEXT("Enemy");
+			break;
+		case EPDBattleSpawnType::Item:
+			SpawnTypeText = TEXT("Item");
+			break;
+		default:
+			break;
+		}
+
+		UE_LOG(
+			LogTemp,
+			Log,
+			TEXT("[PD][BattleGameMode][SpawnStageUnit] SpawnActor - ID:%d Type:%s TypeID:%d Location:%s Rotation:%s"),
+			SpawnActor->BattleSpawnID,
+			SpawnTypeText,
+			SpawnActor->SpawnTypeID,
+			*SpawnActor->GetActorLocation().ToString(),
+			*SpawnActor->GetActorRotation().ToString()
+		);
 	}
-
-	// ===== Enemy Spawn =====
-
 }

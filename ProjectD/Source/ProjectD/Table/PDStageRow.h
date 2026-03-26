@@ -19,13 +19,7 @@ struct PROJECTD_API FPDStageRow : public FTableRowBase
 	FString StageName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Stage")
-	int32 MonsterGroup1 = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Stage")
-	int32 MonsterGroup2 = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Stage")
-	int32 MonsterGroup3 = 0;
+	int32 MonsterGroup = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
 	FString DataAssetName;

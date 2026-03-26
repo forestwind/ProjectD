@@ -16,7 +16,7 @@ class PROJECTD_API UPDStageDataAsset : public UPrimaryDataAsset
 	GENERATED_BODY()
 	
 public:
-	// 라운드별 스폰 데이터
+	// 스테이지 스폰 데이터
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stage")
-	TArray<FStageRoundSpawnData> Rounds;
+	FStageSpawnData SpawnDatas;
 };
