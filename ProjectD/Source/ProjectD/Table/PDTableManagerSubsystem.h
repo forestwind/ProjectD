@@ -9,7 +9,6 @@
 #include "PDUnitStatRow.h"
 #include "PDUnitLevelRow.h"
 #include "PDStageRow.h"
-#include "PDMonsterGroupRow.h"
 #include "../DataAsset/PDUnitDataAsset.h"
 #include "../DataAsset/Stage/PDStageDataAsset.h"
 #include "PDTableManagerSubsystem.generated.h"
@@ -48,23 +47,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Stage")
 	TObjectPtr<UDataTable> StageDataTable;
 
-	// MonsterGroupDataTable
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Stage")
-	TObjectPtr<UDataTable> MonsterGroupDataTable;
-
 	// ID 기반 빠른 조회를 위한 캐시 맵
 	TMap<int32, const FPDUnitRow*> UnitMap;
 	TMap<int32, const FPDUnitStatRow*> UnitStatMap;
 	TMap<int32, const FPDUnitLevelRow*> UnitLevelMap; // Key: Level
 	TMap<int32, const FPDStageRow*> StageMap;
-	TMap<int32, const FPDMonsterGroupRow*> MonsterGroupMap;
 
 	// DataTable을 맵으로 변환
 	void BuildUnitMap();
 	void BuildUnitStatMap();
 	void BuildUnitLevelMap();
 	void BuildStageMap();
-	void BuildMonsterGroupMap();
 
 	// DataAsset
 	// 로드된 Unit DataAsset 캐시 (GC 방지용)
@@ -88,9 +81,6 @@ public:
 	// Stage ID로 스테이지 데이터 조회
 	const FPDStageRow* GetStage(int32 StageID) const;
 
-	// MonsterGroup ID로 몬스터 그룹 데이터 조회
-	const FPDMonsterGroupRow* GetMonsterGroup(int32 MonsterGroupID) const;
-
 	// 유닛 BP 조회
 	UClass* GetUnitBP(const int32 InUnitID);
 
@@ -105,10 +95,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Table|Stage")
 	UDataTable* GetStageDataTable() const { return StageDataTable; }
-
-	UFUNCTION(BlueprintCallable, Category = "Table|Stage")
-	UDataTable* GetMonsterGroupDataTable() const { return MonsterGroupDataTable; }
-
 
 	// DataAsset 이름으로 유닛 DataAsset 로드 및 캐시 반환
 	UFUNCTION(BlueprintCallable, Category = "Table|DataAsset")

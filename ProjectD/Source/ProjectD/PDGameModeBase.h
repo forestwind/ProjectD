@@ -7,6 +7,7 @@
 #include "PDGameModeBase.generated.h"
 
 class UModelManager;
+class APDCharacter;
 
 /**
  * 

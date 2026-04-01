@@ -69,6 +69,14 @@ void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 	}
 }
 
+void APDBattleGameMode::UpdatePlayerHP(int32 CurHP, int32 MaxHP)
+{
+	if (BattleMainWidget)
+	{
+		BattleMainWidget->UpdatePlayerHP(CurHP, MaxHP);
+	}
+}
+
 void APDBattleGameMode::ChangeGameState(const EGameState InGameState)
 {
 	GameStateType = InGameState;

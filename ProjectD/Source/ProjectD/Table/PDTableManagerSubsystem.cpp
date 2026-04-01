@@ -50,14 +50,12 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UnitStatDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitStat"));
 	UnitLevelDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitLevel"));
 	StageDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Stage"));
-	MonsterGroupDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_MonsterGroup"));
-	
+
 	// DataTable을 맵으로 변환 (RowName 의존 제거)
 	BuildUnitMap();
 	BuildUnitStatMap();
 	BuildUnitLevelMap();
 	BuildStageMap();
-	BuildMonsterGroupMap();
 }
 
 void UPDTableManagerSubsystem::Deinitialize()
@@ -68,13 +66,11 @@ void UPDTableManagerSubsystem::Deinitialize()
 	UnitStatMap.Empty();
 	UnitLevelMap.Empty();
 	StageMap.Empty();
-	MonsterGroupMap.Empty();
 
 	UnitDataTable = nullptr;
 	UnitStatDataTable = nullptr;
 	UnitLevelDataTable = nullptr;
 	StageDataTable = nullptr;
-	MonsterGroupDataTable = nullptr;
 	Super::Deinitialize();
 }
 
@@ -186,33 +182,6 @@ void UPDTableManagerSubsystem::BuildStageMap()
 	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] StageMap built. Total entries: %d"), LoadedCount);
 }
 
-void UPDTableManagerSubsystem::BuildMonsterGroupMap()
-{
-	MonsterGroupMap.Empty();
-
-	if (!MonsterGroupDataTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] MonsterGroupDataTable is null!"));
-		return;
-	}
-
-	int32 LoadedCount = 0;
-	TArray<FPDMonsterGroupRow*> AllRows;
-	MonsterGroupDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildMonsterGroupMap"), AllRows);
-
-	for (const FPDMonsterGroupRow* Row : AllRows)
-	{
-		if (!Row) continue;
-		if (Row->ID <= 0) continue;
-		if (MonsterGroupMap.Contains(Row->ID)) continue;
-
-		MonsterGroupMap.Add(Row->ID, Row);
-		++LoadedCount;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] MonsterGroupMap built. Total entries: %d"), LoadedCount);
-}
-
 const FPDUnitRow* UPDTableManagerSubsystem::GetUnit(int32 UnitID) const
 {
 	if (UnitID <= 0) return nullptr;
@@ -238,13 +207,6 @@ const FPDStageRow* UPDTableManagerSubsystem::GetStage(int32 StageID) const
 {
 	if (StageID <= 0) return nullptr;
 	const FPDStageRow* const* FoundRow = StageMap.Find(StageID);
-	return FoundRow ? *FoundRow : nullptr;
-}
-
-const FPDMonsterGroupRow* UPDTableManagerSubsystem::GetMonsterGroup(int32 MonsterGroupID) const
-{
-	if (MonsterGroupID <= 0) return nullptr;
-	const FPDMonsterGroupRow* const* FoundRow = MonsterGroupMap.Find(MonsterGroupID);
 	return FoundRow ? *FoundRow : nullptr;
 }
 

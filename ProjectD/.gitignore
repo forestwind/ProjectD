@@ -76,3 +76,6 @@ DerivedDataCache/*
 
 # External Assets (Private Resource)
 /Content/External/**
+
+/.idea
+/.claude

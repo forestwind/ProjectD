@@ -34,6 +34,7 @@ public:
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
 	void DespawnUnit(const FGuid& InUnitGuid);
+	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
 
 protected:
 	void ChangeGameState(const EGameState InGameState);
