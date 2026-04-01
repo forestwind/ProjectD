@@ -41,12 +41,12 @@ public:
 	FGuid GetUnitGuid() const { return UnitGuid; }
 	//void SetUnitGuid(const FGuid InUnitGuid) { UnitGuid = InUnitGuid; }
 
-	void SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid);
+	void SetInfo(const int32 InUnitTableID, const int32 InLevel, const FGuid& InUnitGuid);
 
 	void UpdateUIHpBar(float Value);
 	float GetHpPercent() const { return UnitInfo.GetHPPercent(); }
 
-	void Attack(APDCharacter* InTarget);
+	void Attack();
 	void TakeDamaged(const float InDamage);
 
 protected:

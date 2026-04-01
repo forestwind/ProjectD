@@ -12,9 +12,9 @@ class UArrowComponent;
 UENUM(BlueprintType)
 enum class EPDBattleSpawnType : uint8
 {
-	None,
-	Enemy,
-	Item,
+	None	UMETA(DisplayName = "None"),
+	Enemy	UMETA(DisplayName = "Enemy"),
+	Item	UMETA(DisplayName = "Item"),
 };
 
 UCLASS()
@@ -42,5 +42,5 @@ public:
 	int32 SpawnTypeID = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BattleSpawn")
-	int32 SpawnTypeLevel = 0;
+	int32 SpawnTypeLevel = 1;
 };

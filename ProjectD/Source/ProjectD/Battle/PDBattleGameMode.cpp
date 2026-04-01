@@ -149,10 +149,9 @@ void APDBattleGameMode::SpawnStageUnit()
 		switch (SpawnActor->SpawnType)
 		{
 		case EPDBattleSpawnType::Enemy:
-			SpawnTypeText = TEXT("Enemy");
+			ModelManager->SpawnCharacter(SpawnActor->SpawnTypeID, SpawnActor->SpawnTypeLevel, SpawnActor->GetActorLocation(), SpawnActor->GetActorRotation());
 			break;
 		case EPDBattleSpawnType::Item:
-			SpawnTypeText = TEXT("Item");
 			break;
 		default:
 			break;
@@ -163,7 +162,7 @@ void APDBattleGameMode::SpawnStageUnit()
 			Log,
 			TEXT("[PD][BattleGameMode][SpawnStageUnit] SpawnActor - ID:%d Type:%s TypeID:%d Location:%s Rotation:%s"),
 			SpawnActor->BattleSpawnID,
-			SpawnTypeText,
+			*UEnum::GetDisplayValueAsText(SpawnActor->SpawnType).ToString(),
 			SpawnActor->SpawnTypeID,
 			*SpawnActor->GetActorLocation().ToString(),
 			*SpawnActor->GetActorRotation().ToString()
