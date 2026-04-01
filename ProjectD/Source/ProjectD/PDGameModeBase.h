@@ -21,7 +21,7 @@ public:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void BeginDestroy() override;
 
-	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID);
+	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID, const int32 InLevel = 1);
 
 protected:
 	UPROPERTY(transient)

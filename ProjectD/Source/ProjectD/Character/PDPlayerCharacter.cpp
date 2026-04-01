@@ -41,8 +41,12 @@ APDPlayerCharacter::APDPlayerCharacter()
 		TEXT("/Game/Input/IMC_BattlePlayer.IMC_BattlePlayer");
 	static const TCHAR* MoveActionPath =
 		TEXT("/Game/Input/IA_BattlePlayerMove.IA_BattlePlayerMove");
+	static const TCHAR* AttackActionPath =
+		TEXT("/Game/Input/IA_BattlePlayerAttack.IA_BattlePlayerAttack");
+
 	MoveMappingContext = LoadObject<UInputMappingContext>(nullptr, MoveIMCPath);
 	MoveAction = LoadObject<UInputAction>(nullptr, MoveActionPath);
+	AttackAction = LoadObject<UInputAction>(nullptr, AttackActionPath);
 }
 
 void APDPlayerCharacter::PossessedBy(AController* NewController)
@@ -81,6 +85,12 @@ void APDPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			// 연속 입력: Triggered 사용
 			EIC->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APDPlayerCharacter::HandleMove);
 		}
+
+		if (AttackAction)
+		{
+			// 연속 입력: Triggered 사용
+			EIC->BindAction(AttackAction, ETriggerEvent::Triggered, this, &APDPlayerCharacter::HandleAttack);
+		}
 	}
 }
 
@@ -107,6 +117,11 @@ void APDPlayerCharacter::HandleMove(const FInputActionValue& Value)
 	{
 		AddMovementInput(MoveDirection.GetSafeNormal(), InputScale);
 	}
+}
+
+void APDPlayerCharacter::HandleAttack()
+{
+	Attack();
 }
 
 void APDPlayerCharacter::ApplyCameraSettings()

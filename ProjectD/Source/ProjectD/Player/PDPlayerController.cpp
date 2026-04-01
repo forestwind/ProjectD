@@ -10,6 +10,10 @@ void APDPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
+	FInputModeGameAndUI InputModeGameAndUI;
+	SetInputMode(InputModeGameAndUI);
+	//bShowMouseCursor = false;
+
 	APDCharacter* PDCharacter = Cast<APDCharacter>(aPawn);
 	if (APDGameModeBase* PDGameModeBase = Cast<APDGameModeBase>(GetWorld()->GetAuthGameMode()))
 	{

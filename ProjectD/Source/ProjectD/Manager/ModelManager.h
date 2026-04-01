@@ -19,10 +19,10 @@ public:
 	UModelManager();
 	virtual void BeginDestroy() override;
 
-	APDCharacter* SpawnCharacter(const int32 InUnitID, const FVector& InPosition, const FRotator& InRotation);
+	APDCharacter* SpawnCharacter(const int32 InUnitID, const int32 InLevel, const FVector& InPosition, const FRotator& InRotation);
 	void DespawnCharacter(const FGuid InUnitGuid, bool InImmediately = false);
 	APDCharacter* FindCharacter(const FGuid InUnitGuid);
-	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID);
+	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID, const int32 InLevel);
 
 private:
 	UPROPERTY(transient)

@@ -22,7 +22,7 @@ void UModelManager::BeginDestroy()
 	Super::BeginDestroy();
 }
 
-APDCharacter* UModelManager::SpawnCharacter(const int32 InUnitID, const FVector& InPosition, const FRotator& InRotation)
+APDCharacter* UModelManager::SpawnCharacter(const int32 InUnitID, const int32 InLevel, const FVector& InPosition, const FRotator& InRotation)
 {
 	UPDTableManagerSubsystem* TableManager = UGameInstance::GetSubsystem<UPDTableManagerSubsystem>(UGameplayStatics::GetGameInstance(this));
 	if (TableManager == nullptr)
@@ -55,7 +55,7 @@ APDCharacter* UModelManager::SpawnCharacter(const int32 InUnitID, const FVector&
 	FActorSpawnParameters SpawnInfo;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	APDCharacter* PDCharacter = GetWorld()->SpawnActor<APDCharacter>(ObjectClass, InPosition, InRotation, SpawnInfo);
-	AddCharacter(PDCharacter, InUnitID);
+	AddCharacter(PDCharacter, InUnitID, InLevel);
 
 	return PDCharacter;
 }
@@ -91,7 +91,7 @@ APDCharacter* UModelManager::FindCharacter(const FGuid InUnitGuid)
 	return PDCharacter;
 }
 
-void UModelManager::AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID)
+void UModelManager::AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID, const int32 InLevel)
 {
 	if (PDCharacter == nullptr)
 	{
@@ -99,6 +99,6 @@ void UModelManager::AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID
 	}
 
 	FGuid NewGuid = FGuid::NewGuid();
-	PDCharacter->SetInfo(InUnitID, NewGuid);
+	PDCharacter->SetInfo(InUnitID, InLevel, NewGuid);
 	CharacterMap.Add(NewGuid, PDCharacter);
 }

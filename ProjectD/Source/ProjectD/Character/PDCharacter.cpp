@@ -55,10 +55,11 @@ void APDCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
-void APDCharacter::SetInfo(const int32 InUnitTableID, const FGuid& InUnitGuid)
+void APDCharacter::SetInfo(const int32 InUnitTableID, const int32 InLevel, const FGuid& InUnitGuid)
 {
 	UnitID = InUnitTableID;
 	UnitGuid = InUnitGuid;
+	UnitInfo.Level = InLevel;
 	LoadInfo(UnitID);
 }
 
@@ -70,15 +71,9 @@ void APDCharacter::UpdateUIHpBar(float Value)
 	}
 }
 
-void APDCharacter::Attack(APDCharacter* InTarget)
+void APDCharacter::Attack()
 {
-	if (InTarget == nullptr)
-	{
-		return;
-	}
-
 	ChangeAIState(EAIState::Attack);
-	InTarget->TakeDamaged(UnitInfo.Attack);
 }
 
 void APDCharacter::TakeDamaged(const float InDamage)
@@ -226,12 +221,16 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 	}
 
 	bool bBindDelegate = false;
+	bool bMove = false;
 	UAnimMontage* PlayMontage = nullptr;
 
 	switch (InAIState)
 	{
 	case EAIState::Idle:
-		PlayMontage = IdleMontage;
+	{
+		//PlayMontage = IdleMontage;
+		bMove = true;
+	}
 		break;
 	case EAIState::Attack:
 	{
@@ -257,6 +256,14 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 		bBindDelegate = true;
 	}
 	break;
+	}
+
+	if (bMove == false)
+	{
+		if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+		{
+			MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
 	}
 
 	if (PlayMontage)
@@ -287,7 +294,15 @@ void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 			BattleGameMode->DespawnUnit(UnitGuid);
 		}
 	}
-	else if (InMontage == VictoryMontage || InMontage == AttackMontage || InMontage == DamagedMontage)
+	if (InMontage == AttackMontage)
+	{
+		if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
+		{
+			MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking);
+		}
+		ChangeAIState(EAIState::Idle);
+	}
+	else if (InMontage == VictoryMontage || InMontage == DamagedMontage)
 	{
 		ChangeAIState(EAIState::Idle);
 	}
@@ -295,9 +310,9 @@ void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 
 void APDCharacter::ChangeAIState(EAIState InAIState)
 {
+	ChangeAnimation(InAIState);
 	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
 	{
-		ChangeAnimation(InAIState);
 		PDAIController->ChangeAIState(InAIState);
 	}
 }
