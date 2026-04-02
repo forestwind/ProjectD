@@ -8,15 +8,20 @@
 #include "PDGameInstance.generated.h"
 
 class UPDUIRootWidget;
+class UPDSoundDataAsset;
+
 /**
- * 
+ *
  */
 UCLASS()
 class PROJECTD_API UPDGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+
 public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSoftClassPtr<UPDUIRootWidget> RootUIClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	TSoftObjectPtr<UPDSoundDataAsset> SoundDataAsset;
 };

@@ -9,6 +9,7 @@
 #include "Character/PDCharacter.h"
 #include "UI/Core/PDUIManagerSubsystem.h"
 #include "Table/PDTableManagerSubsystem.h"
+#include "Sound/PDSoundManagerSubsystem.h"
 #include "Player/PDPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -89,6 +90,12 @@ void APDBattleGameMode::ReadyGame()
 	StartStage(StageID);
 	SpawnStageUnit();
 	ShowUIPhaseMessage(EGameState::Ready);
+
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	if (UPDSoundManagerSubsystem* SoundMgr = GI ? GI->GetSubsystem<UPDSoundManagerSubsystem>() : nullptr)
+	{
+		SoundMgr->PlayBGMBattle();
+	}
 }
 
 const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C");
@@ -116,6 +123,7 @@ void APDBattleGameMode::StartGame()
 			}
 		}
 	}
+
 }
 
 void APDBattleGameMode::EndGame()
@@ -123,6 +131,7 @@ void APDBattleGameMode::EndGame()
 	ChangeGameState(EGameState::End);
 
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][EndGame] Game Clear!!"));
+
 }
 
 void APDBattleGameMode::StartStage(const int32 InStageID)
