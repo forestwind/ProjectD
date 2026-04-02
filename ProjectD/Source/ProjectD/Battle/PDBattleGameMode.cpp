@@ -29,9 +29,10 @@ void APDBattleGameMode::BeginPlay()
 
 	ReadyGame();
 
+	
 	// game state test
 	FTimerHandle StartTimer;
-	GetWorld()->GetTimerManager().SetTimer(StartTimer, this, &APDBattleGameMode::StartGame, 3.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(StartTimer, this, &APDBattleGameMode::StartGame, ReadyMessageDuration, false);
 }
 
 void APDBattleGameMode::Tick(float DeltaSeconds)
@@ -87,15 +88,20 @@ void APDBattleGameMode::ReadyGame()
 	ChangeGameState(EGameState::Ready);
 	StartStage(StageID);
 	SpawnStageUnit();
+	ShowUIPhaseMessage(EGameState::Ready);
 }
 
 const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C");
+const TCHAR* APDBattleGameMode::PhaseMsgWidgetPath = TEXT("/Game/UI/Battle/WBP_BattlePhaseMsg.WBP_BattlePhaseMsg_C");
+
 
 void APDBattleGameMode::StartGame()
 {
 	ChangeGameState(EGameState::Play);
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
-
+	ShowUIPhaseMessage(EGameState::Play);
+	
+	
 	// WBP_BattleMainUI 경로로 로드 후 UIManager Panel2D에 추가
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
@@ -167,5 +173,97 @@ void APDBattleGameMode::SpawnStageUnit()
 			*SpawnActor->GetActorLocation().ToString(),
 			*SpawnActor->GetActorRotation().ToString()
 		);
+	}
+}
+
+void APDBattleGameMode::ShowPhaseMessage(const FText& InText)
+{
+	UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+	if (!GI)
+	{
+		return;
+	}
+	
+	UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>();
+	if (!UIManager)
+	{
+		return;
+	}
+	
+	// 위젯 생성(처음 1회)
+	if (!PhaseMsgWidget)
+	{
+		if (UClass* WidgetClass = LoadClass<UPDUIBattlePhaseMsgWidget>(nullptr, PhaseMsgWidgetPath))
+		{
+			PhaseMsgWidget = CreateWidget<UPDUIBattlePhaseMsgWidget>(GI, WidgetClass);
+		}
+	}
+	if (!PhaseMsgWidget)
+	{
+		return;
+	}
+	
+	PhaseMsgWidget->SetPhaseText(InText);
+	UIManager->AddWidgetToPanelOverlay(PhaseMsgWidget);
+	
+}
+
+void APDBattleGameMode::HidePhaseMessage()
+{
+	if (PhaseMsgWidget)
+	{
+		PhaseMsgWidget->RemoveFromParent();
+	}
+	
+	// 혹시라도 남은 overlay가 있으면 정리
+	if (UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr)
+	{
+		if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
+		{
+			UIManager->ClearPanelOverlay();
+		}
+	}
+}
+
+void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
+{
+	if (state == EGameState::Ready)
+	{
+		// READY 메시지 표시(Overlay)
+		if (UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr)
+		{
+			if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
+			{
+				UIManager->ClearPanelOverlay();
+				ShowPhaseMessage(FText::FromString(TEXT("READY")));
+			}
+		}
+	}
+	else if (state == EGameState::Play)
+	{
+		// START 메시지 표시(Overlay)
+		if (UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr)
+		{
+			if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
+			{
+				UIManager->ClearPanelOverlay();
+				ShowPhaseMessage(FText::FromString(TEXT("START")));
+			}
+		}
+	
+		if (StartMessageDuration > 0.0f)
+		{
+			GetWorld()->GetTimerManager().SetTimer(
+				HidePhaseMsgTimerHandle,
+				this,
+				&APDBattleGameMode::HidePhaseMessage,
+				StartMessageDuration,
+				false
+			);
+		}
+		else
+		{
+			HidePhaseMessage();
+		}
 	}
 }

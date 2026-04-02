@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "../PDGameModeBase.h"
 #include "../UI/Battle/PDUIBattleMainWidget.h"
+#include "../UI/Battle/PDUIBattlePhaseMsgWidget.h"
 #include "PDBattleGameMode.generated.h"
 
 UENUM()
@@ -50,10 +51,33 @@ protected:
 	EGameState GameStateType;
 	int32 StageID;
 
-	/** 전투 메인 UI 위젯 (경로로 로드, UIManager Panel2D에 추가) */
+	// 전투 메인 UI
 	UPROPERTY(transient)
 	TObjectPtr<UPDUIBattleMainWidget> BattleMainWidget;
 
-	/** WBP_BattleMainUI 블루프린트 경로 */
+	// READY/START 메시지
+	UPROPERTY(transient)
+	TObjectPtr<UPDUIBattlePhaseMsgWidget> PhaseMsgWidget;
+	
+	// WBP_BattleMainUI 블루프린트 경로
 	static const TCHAR* BattleMainWidgetPath;
+	// WBP_BattlePhaseMsg 블루프린트 경로
+	static const TCHAR* PhaseMsgWidgetPath;
+	
+	// Ready Text 표시 시간
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI", meta = (ClampMin = "0.0"))
+	float ReadyMessageDuration = 3.0f;
+	
+	// START Text 표시 시간
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI", meta = (ClampMin = "0.0"))
+	float StartMessageDuration = 1.0f;
+	
+	void ShowUIPhaseMessage(EGameState state);
+	
+private:
+	
+	FTimerHandle HidePhaseMsgTimerHandle;
+	
+	void ShowPhaseMessage(const FText& InText);
+	void HidePhaseMessage();
 };
