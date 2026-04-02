@@ -47,6 +47,8 @@ public:
 	float GetHpPercent() const { return UnitInfo.GetHPPercent(); }
 
 	void Attack();
+	void CheckAttack();
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	void TakeDamaged(const float InDamage);
 
 protected:
@@ -73,22 +75,22 @@ protected:
 	UPDUnitDataAsset* UnitAsset;
 
 	UPROPERTY()
-	UAnimMontage* IdleMontage;
+	TObjectPtr<UAnimMontage> IdleMontage;
 
 	UPROPERTY()
-	UAnimMontage* AttackMontage;
+	TObjectPtr<UAnimMontage> AttackMontage;
 
 	UPROPERTY()
-	UAnimMontage* DamagedMontage;
+	TObjectPtr<UAnimMontage> DamagedMontage;
 
 	UPROPERTY()
-	UAnimMontage* DieMontage;
+	TObjectPtr<UAnimMontage> DieMontage;
 
 	UPROPERTY()
-	UAnimMontage* MoveMontage;
+	TObjectPtr<UAnimMontage> MoveMontage;
 
 	UPROPERTY()
-	UAnimMontage* VictoryMontage;
+	TObjectPtr<UAnimMontage> VictoryMontage;
 
 	/** 캐릭터 머리 위 HP 바 (생성/클래스 로드/갱신은 컴포넌트에서 담당) */
 	UPROPERTY(VisibleAnywhere, Category = "UI")

@@ -12,16 +12,19 @@
 #include "Table/PDUnitStatRow.h"
 #include "Table/PDUnitLevelRow.h"
 #include "Battle/PDBattleGameMode.h"
+#include "PDDefine.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Engine/DamageEvents.h"
 
 // Sets default values
 APDCharacter::APDCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 	AIControllerClass = APDAIController::StaticClass();
 	UnitAsset = nullptr;
 	IdleMontage = nullptr;
@@ -31,6 +34,9 @@ APDCharacter::APDCharacter()
 
 	UnitGuid = FGuid();
 	UnitID = 1;
+
+	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_PDPAWN);
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 
 	HpBarWidgetComponent = CreateDefaultSubobject<UPDHpBarWidgetComponent>(TEXT("HpBarWidget"));
 	HpBarWidgetComponent->SetupAttachment(GetRootComponent());
@@ -74,6 +80,43 @@ void APDCharacter::UpdateUIHpBar(float Value)
 void APDCharacter::Attack()
 {
 	ChangeAIState(EAIState::Attack);
+}
+
+void APDCharacter::CheckAttack()
+{
+	FHitResult OutHitResult;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
+
+	const float AttackRange = 40.0f;
+	const float AttackRadius = 50.0f;
+	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const FVector End = Start + GetActorForwardVector() * AttackRange;
+
+	bool HitDetected = GetWorld()->SweepSingleByChannel(OutHitResult, Start, End, FQuat::Identity, CCHANNEL_PDACTION, FCollisionShape::MakeSphere(AttackRadius), Params);
+	if (HitDetected)
+	{
+		FDamageEvent DamageEvent;
+		OutHitResult.GetActor()->TakeDamage(UnitInfo.Attack, DamageEvent, GetController(), this);
+	}
+
+#if ENABLE_DRAW_DEBUG
+
+	FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
+	float CapsuleHalfHeight = AttackRange * 0.5f;
+	FColor DrawColor = HitDetected ? FColor::Green : FColor::Red;
+
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius, FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), DrawColor, false, 5.0f);
+
+#endif
+}
+
+float APDCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	TakeDamaged(DamageAmount);
+
+	return DamageAmount;
 }
 
 void APDCharacter::TakeDamaged(const float InDamage)
@@ -231,7 +274,7 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 		//PlayMontage = IdleMontage;
 		bMove = true;
 	}
-		break;
+	break;
 	case EAIState::Attack:
 	{
 		PlayMontage = AttackMontage;
@@ -248,6 +291,8 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 	{
 		PlayMontage = DieMontage;
 		bBindDelegate = true;
+		SetActorEnableCollision(false);
+		AnimInstance->StopAllMontages(0.0f);
 	}
 	break;
 	case EAIState::Victory:
@@ -294,7 +339,7 @@ void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 			BattleGameMode->DespawnUnit(UnitGuid);
 		}
 	}
-	if (InMontage == AttackMontage)
+	else if (InMontage == AttackMontage)
 	{
 		if (UCharacterMovementComponent* MovementComponent = GetCharacterMovement())
 		{
