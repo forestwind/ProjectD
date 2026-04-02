@@ -210,17 +210,11 @@ void APDBattleGameMode::ShowPhaseMessage(const FText& InText)
 
 void APDBattleGameMode::HidePhaseMessage()
 {
-	if (PhaseMsgWidget)
-	{
-		PhaseMsgWidget->RemoveFromParent();
-	}
-	
-	// 혹시라도 남은 overlay가 있으면 정리
 	if (UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr)
 	{
 		if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 		{
-			UIManager->ClearPanelOverlay();
+			UIManager->RemoveWidgetFromPanelOverlay(PhaseMsgWidget);
 		}
 	}
 }
@@ -234,7 +228,7 @@ void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
 		{
 			if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 			{
-				UIManager->ClearPanelOverlay();
+				UIManager->RemoveWidgetFromPanelOverlay(PhaseMsgWidget);
 				ShowPhaseMessage(FText::FromString(TEXT("READY")));
 			}
 		}
@@ -246,7 +240,7 @@ void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
 		{
 			if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 			{
-				UIManager->ClearPanelOverlay();
+				UIManager->RemoveWidgetFromPanelOverlay(PhaseMsgWidget);
 				ShowPhaseMessage(FText::FromString(TEXT("START")));
 			}
 		}

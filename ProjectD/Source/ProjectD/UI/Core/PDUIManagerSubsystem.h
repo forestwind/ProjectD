@@ -29,6 +29,9 @@ public:
 	/** 최상단 UI 추가 (paneloverlay) */
 	void AddWidgetToPanelOverlay(UUserWidget* Widget);
 
+	void RemoveWidgetFromPanel2D(UUserWidget* Widget);
+	void RemoveWidgetFromPanelOverlay(UUserWidget* Widget);
+
 	void ClearPanel2D();
 	void ClearPanelOverlay();
 

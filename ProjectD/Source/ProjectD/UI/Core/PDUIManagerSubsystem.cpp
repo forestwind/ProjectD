@@ -164,6 +164,34 @@ void UPDUIManagerSubsystem::AddWidgetToPanelOverlay(UUserWidget* Widget)
 	}
 }
 
+void UPDUIManagerSubsystem::RemoveWidgetFromPanel2D(UUserWidget* Widget)
+{
+	if (!Widget || !RootUI)
+	{
+		return;
+	}
+
+	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
+	if (Panel2D && Widget->GetParent() == Panel2D)
+	{
+		Widget->RemoveFromParent();
+	}
+}
+
+void UPDUIManagerSubsystem::RemoveWidgetFromPanelOverlay(UUserWidget* Widget)
+{
+	if (!Widget || !RootUI)
+	{
+		return;
+	}
+
+	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
+	if (PanelOverlay && Widget->GetParent() == PanelOverlay)
+	{
+		Widget->RemoveFromParent();
+	}
+}
+
 void UPDUIManagerSubsystem::ClearPanel2D()
 {
 	if (!RootUI)
