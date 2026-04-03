@@ -10,14 +10,14 @@ void APDPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
-	FInputModeGameAndUI InputModeGameAndUI;
-	SetInputMode(InputModeGameAndUI);
-	bShowMouseCursor = false;
+	//FInputModeGameAndUI InputModeGameAndUI;
+	//SetInputMode(InputModeGameAndUI);
+	//bShowMouseCursor = false;
 
 	APDCharacter* PDCharacter = Cast<APDCharacter>(aPawn);
 	if (APDBattleGameMode* PDBattleGameMode = Cast<APDBattleGameMode>(GetWorld()->GetAuthGameMode()))
 	{
 		PDBattleGameMode->AddCharacter(PDCharacter, PlayerUnitID);
-		//PDBattleGameMode->SetPlayerUnitGuid(PDCharacter->GetUnitGuid());
+		PDBattleGameMode->SetPlayerUnitGuid(PDCharacter->GetUnitGuid());
 	}
 }

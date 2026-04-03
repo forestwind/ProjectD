@@ -66,13 +66,33 @@ void APDBattleGameMode::RestartPlayer(AController* NewPlayer)
 	Super::RestartPlayer(NewPlayer);
 }
 
+void APDBattleGameMode::SetPlayerUnitGuid(const FGuid& InUnitGuid)
+{
+	PlayerUnitGuid = InUnitGuid;
+}
+
 void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 {
-	if (ModelManager)
+	if (ModelManager == nullptr)
 	{
-		ModelManager->DespawnCharacter(InUnitGuid);
+		return;
+	}
+
+	ModelManager->DespawnCharacter(InUnitGuid);
+	if (InUnitGuid == PlayerUnitGuid)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][DespawnUnit] Player Unit Died!!"));
+		EndGame();
+	}
+	else
+	{
 		RemainingEnemyCount = FMath::Max(0, RemainingEnemyCount - 1);
 		UpdateMonsterCount();
+		if (RemainingEnemyCount == 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][DespawnUnit] All Monster Died!!"));
+			EndGame();
+		}
 	}
 }
 
