@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "../PDGameModeBase.h"
-#include "../UI/Battle/PDUIBattleMainWidget.h"
-#include "../UI/Battle/PDUIBattlePhaseMsgWidget.h"
-#include "../UI/Battle/PDUIBattleEndWidget.h"
 #include "PDBattleGameMode.generated.h"
 
 UENUM()
@@ -17,6 +14,10 @@ enum class EGameState : uint8
 	End,
 	Max
 };
+
+class UPDUIBattleMainWidget;
+class UPDUIBattleEndWidget;
+class UPDUIBattlePhaseMsgWidget;
 
 /**
  * 
@@ -67,12 +68,14 @@ protected:
 	UPROPERTY(transient)
 	TObjectPtr<UPDUIBattlePhaseMsgWidget> PhaseMsgWidget;
 
-	// WBP_BattleMainUI 블루프린트 경로
-	static const TCHAR* BattleMainWidgetPath;
-	// WBP_BattleEndUI 블루프린트 경로
-	static const TCHAR* BattleEndWidgetPath;
-	// WBP_BattlePhaseMsg 블루프린트 경로
-	static const TCHAR* PhaseMsgWidgetPath;
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
+	TSubclassOf<UPDUIBattleMainWidget> BattleMainWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
+	TSubclassOf<UPDUIBattleEndWidget> BattleEndWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
+	TSubclassOf<UPDUIBattlePhaseMsgWidget> PhaseMsgWidgetClass;
 	
 	// Ready Text 표시 시간
 	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI", meta = (ClampMin = "0.0"))

@@ -4,6 +4,9 @@
 #include "PDBattleGameMode.h"
 
 #include "Blueprint/UserWidget.h"
+#include "UI/Battle/PDUIBattleMainWidget.h"
+#include "UI/Battle/PDUIBattleEndWidget.h"
+#include "UI/Battle/PDUIBattlePhaseMsgWidget.h"
 #include "Manager/ModelManager.h"
 #include "Battle/PDBattleSpawnActor.h"
 #include "Character/PDCharacter.h"
@@ -108,34 +111,23 @@ void APDBattleGameMode::ReadyGame()
 	}
 }
 
-const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C");
-const TCHAR* APDBattleGameMode::BattleEndWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleEndUI.WBP_BattleEndUI_C");
-const TCHAR* APDBattleGameMode::PhaseMsgWidgetPath = TEXT("/Game/UI/Battle/WBP_BattlePhaseMsg.WBP_BattlePhaseMsg_C");
-
-
 void APDBattleGameMode::StartGame()
 {
 	ChangeGameState(EGameState::Play);
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
 	ShowUIPhaseMessage(EGameState::Play);
-	
-	
-	// WBP_BattleMainUI 경로로 로드 후 UIManager Panel2D에 추가
+
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
-	if (UIManager)
+	if (UIManager && BattleMainWidgetClass)
 	{
-		if (UClass* WidgetClass = LoadClass<UPDUIBattleMainWidget>(nullptr, BattleMainWidgetPath))
+		BattleMainWidget = CreateWidget<UPDUIBattleMainWidget>(GI, BattleMainWidgetClass);
+		if (BattleMainWidget)
 		{
-			BattleMainWidget = CreateWidget<UPDUIBattleMainWidget>(GI, WidgetClass);
-			if (BattleMainWidget)
-			{
-				UIManager->AddWidgetToPanel2D(BattleMainWidget);
-				UpdateMonsterCount();
-			}
+			UIManager->AddWidgetToPanel2D(BattleMainWidget);
+			UpdateMonsterCount();
 		}
 	}
-
 }
 
 void APDBattleGameMode::EndGame()
@@ -161,9 +153,9 @@ void APDBattleGameMode::ShowBattleEndUI()
 		BattleMainWidget = nullptr;
 	}
 
-	if (UClass* WidgetClass = LoadClass<UPDUIBattleEndWidget>(nullptr, BattleEndWidgetPath))
+	if (BattleEndWidgetClass)
 	{
-		BattleEndWidget = CreateWidget<UPDUIBattleEndWidget>(GI, WidgetClass);
+		BattleEndWidget = CreateWidget<UPDUIBattleEndWidget>(GI, BattleEndWidgetClass);
 		if (BattleEndWidget)
 		{
 			const FText ResultText = (RemainingEnemyCount == 0)
@@ -245,12 +237,9 @@ void APDBattleGameMode::ShowPhaseMessage(const FText& InText)
 	}
 	
 	// 위젯 생성(처음 1회)
-	if (!PhaseMsgWidget)
+	if (!PhaseMsgWidget && PhaseMsgWidgetClass)
 	{
-		if (UClass* WidgetClass = LoadClass<UPDUIBattlePhaseMsgWidget>(nullptr, PhaseMsgWidgetPath))
-		{
-			PhaseMsgWidget = CreateWidget<UPDUIBattlePhaseMsgWidget>(GI, WidgetClass);
-		}
+		PhaseMsgWidget = CreateWidget<UPDUIBattlePhaseMsgWidget>(GI, PhaseMsgWidgetClass);
 	}
 	if (!PhaseMsgWidget)
 	{
