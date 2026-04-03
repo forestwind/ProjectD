@@ -8,6 +8,7 @@
 
 class UProgressBar;
 class UTextBlock;
+class UPDUIBattleMinimapWidget;
 
 /**
  *
@@ -33,4 +34,7 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> TextMonsterCount;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UPDUIBattleMinimapWidget> MinimapWidget;
 };

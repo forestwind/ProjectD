@@ -23,6 +23,7 @@ public:
 	virtual void BeginDestroy() override;
 
 	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID, const int32 InLevel = 1);
+	UModelManager* GetModelManager() const { return ModelManager; }
 
 protected:
 	UPROPERTY(transient)
