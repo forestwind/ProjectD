@@ -5,6 +5,14 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
+void UPDUIBattleMainWidget::UpdateMonsterCount(int32 Remaining, int32 Total)
+{
+	if (TextMonsterCount)
+	{
+		TextMonsterCount->SetText(FText::FromString(FString::Printf(TEXT("%d / %d"), Remaining, Total)));
+	}
+}
+
 void UPDUIBattleMainWidget::UpdatePlayerHP(int32 CurHP, int32 MaxHP)
 {
 	if (PbPlayerHp)

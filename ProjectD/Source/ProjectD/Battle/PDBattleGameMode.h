@@ -6,6 +6,7 @@
 #include "../PDGameModeBase.h"
 #include "../UI/Battle/PDUIBattleMainWidget.h"
 #include "../UI/Battle/PDUIBattlePhaseMsgWidget.h"
+#include "../UI/Battle/PDUIBattleEndWidget.h"
 #include "PDBattleGameMode.generated.h"
 
 UENUM()
@@ -36,6 +37,7 @@ public:
 
 	void DespawnUnit(const FGuid& InUnitGuid);
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
+	void UpdateMonsterCount();
 
 protected:
 	void ChangeGameState(const EGameState InGameState);
@@ -50,17 +52,25 @@ protected:
 
 	EGameState GameStateType;
 	int32 StageID;
+	int32 TotalEnemyCount = 0;
+	int32 RemainingEnemyCount = 0;
 
 	// 전투 메인 UI
 	UPROPERTY(transient)
 	TObjectPtr<UPDUIBattleMainWidget> BattleMainWidget;
 
+	// 전투 종료 결과 UI
+	UPROPERTY(transient)
+	TObjectPtr<UPDUIBattleEndWidget> BattleEndWidget;
+
 	// READY/START 메시지
 	UPROPERTY(transient)
 	TObjectPtr<UPDUIBattlePhaseMsgWidget> PhaseMsgWidget;
-	
+
 	// WBP_BattleMainUI 블루프린트 경로
 	static const TCHAR* BattleMainWidgetPath;
+	// WBP_BattleEndUI 블루프린트 경로
+	static const TCHAR* BattleEndWidgetPath;
 	// WBP_BattlePhaseMsg 블루프린트 경로
 	static const TCHAR* PhaseMsgWidgetPath;
 	
@@ -73,6 +83,7 @@ protected:
 	float StartMessageDuration = 1.0f;
 	
 	void ShowUIPhaseMessage(EGameState state);
+	void ShowBattleEndUI();
 	
 private:
 	

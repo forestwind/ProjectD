@@ -68,6 +68,16 @@ void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 	if (ModelManager)
 	{
 		ModelManager->DespawnCharacter(InUnitGuid);
+		RemainingEnemyCount = FMath::Max(0, RemainingEnemyCount - 1);
+		UpdateMonsterCount();
+	}
+}
+
+void APDBattleGameMode::UpdateMonsterCount()
+{
+	if (BattleMainWidget)
+	{
+		BattleMainWidget->UpdateMonsterCount(RemainingEnemyCount, TotalEnemyCount);
 	}
 }
 
@@ -99,6 +109,7 @@ void APDBattleGameMode::ReadyGame()
 }
 
 const TCHAR* APDBattleGameMode::BattleMainWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C");
+const TCHAR* APDBattleGameMode::BattleEndWidgetPath = TEXT("/Game/UI/Battle/WBP_BattleEndUI.WBP_BattleEndUI_C");
 const TCHAR* APDBattleGameMode::PhaseMsgWidgetPath = TEXT("/Game/UI/Battle/WBP_BattlePhaseMsg.WBP_BattlePhaseMsg_C");
 
 
@@ -120,6 +131,7 @@ void APDBattleGameMode::StartGame()
 			if (BattleMainWidget)
 			{
 				UIManager->AddWidgetToPanel2D(BattleMainWidget);
+				UpdateMonsterCount();
 			}
 		}
 	}
@@ -129,9 +141,38 @@ void APDBattleGameMode::StartGame()
 void APDBattleGameMode::EndGame()
 {
 	ChangeGameState(EGameState::End);
-
+	
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][EndGame] Game Clear!!"));
+	ShowBattleEndUI();
+}
 
+void APDBattleGameMode::ShowBattleEndUI()
+{
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
+	if (!UIManager)
+	{
+		return;
+	}
+
+	if (BattleMainWidget)
+	{
+		UIManager->RemoveWidgetFromPanel2D(BattleMainWidget);
+		BattleMainWidget = nullptr;
+	}
+
+	if (UClass* WidgetClass = LoadClass<UPDUIBattleEndWidget>(nullptr, BattleEndWidgetPath))
+	{
+		BattleEndWidget = CreateWidget<UPDUIBattleEndWidget>(GI, WidgetClass);
+		if (BattleEndWidget)
+		{
+			const FText ResultText = (RemainingEnemyCount == 0)
+				? FText::FromString(TEXT("Victory"))
+				: FText::FromString(TEXT("Defeat"));
+			BattleEndWidget->SetResultText(ResultText);
+			UIManager->AddWidgetToPanel2D(BattleEndWidget);
+		}
+	}
 }
 
 void APDBattleGameMode::StartStage(const int32 InStageID)
@@ -164,7 +205,11 @@ void APDBattleGameMode::SpawnStageUnit()
 		switch (SpawnActor->SpawnType)
 		{
 		case EPDBattleSpawnType::Enemy:
-			ModelManager->SpawnCharacter(SpawnActor->SpawnTypeID, SpawnActor->SpawnTypeLevel, SpawnActor->GetActorLocation(), SpawnActor->GetActorRotation());
+			if (ModelManager->SpawnCharacter(SpawnActor->SpawnTypeID, SpawnActor->SpawnTypeLevel, SpawnActor->GetActorLocation(), SpawnActor->GetActorRotation()))
+			{
+				++TotalEnemyCount;
+				++RemainingEnemyCount;
+			}
 			break;
 		case EPDBattleSpawnType::Item:
 			break;

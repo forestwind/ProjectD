@@ -21,10 +21,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
 
+	UFUNCTION(BlueprintCallable, Category = "UI")
+	void UpdateMonsterCount(int32 Remaining, int32 Total);
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UProgressBar> PbPlayerHp;
-	
+
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> TextPlayerHp;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UTextBlock> TextMonsterCount;
 };
