@@ -36,7 +36,7 @@ public:
 
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
-	//void SetPlayerUnitGuid(const FGuid& InUnitGuid);
+	void SetPlayerUnitGuid(const FGuid& InUnitGuid);
 
 	void DespawnUnit(const FGuid& InUnitGuid);
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
