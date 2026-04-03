@@ -99,6 +99,11 @@ void APDBattleGameMode::ChangeGameState(const EGameState InGameState)
 
 void APDBattleGameMode::ReadyGame()
 {
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		PC->SetInputMode(FInputModeUIOnly());
+	}
+
 	ChangeGameState(EGameState::Ready);
 	StartStage(StageID);
 	SpawnStageUnit();
@@ -113,6 +118,11 @@ void APDBattleGameMode::ReadyGame()
 
 void APDBattleGameMode::StartGame()
 {
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		PC->SetInputMode(FInputModeGameAndUI());
+	}
+
 	ChangeGameState(EGameState::Play);
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
 	ShowUIPhaseMessage(EGameState::Play);
@@ -140,6 +150,12 @@ void APDBattleGameMode::EndGame()
 
 void APDBattleGameMode::ShowBattleEndUI()
 {
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		PC->bShowMouseCursor = true;
+		PC->SetInputMode(FInputModeUIOnly());
+	}
+
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
 	if (!UIManager)

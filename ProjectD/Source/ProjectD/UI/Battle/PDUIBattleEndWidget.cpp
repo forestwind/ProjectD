@@ -3,6 +3,8 @@
 #include "UI/Battle/PDUIBattleEndWidget.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "Kismet/GameplayStatics.h"
+#include "UI/Core/PDUIManagerSubsystem.h"
 
 void UPDUIBattleEndWidget::NativeConstruct()
 {
@@ -29,10 +31,18 @@ void UPDUIBattleEndWidget::SetResultText(const FText& InText)
 
 void UPDUIBattleEndWidget::OnRetryClicked()
 {
-	// TODO: 배틀 재시작 처리
+	if (UPDUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UPDUIManagerSubsystem>())
+	{
+		UIManager->RemoveWidgetFromPanel2D(this);
+	}
+	UGameplayStatics::OpenLevel(this, TEXT("ForestMap"));
 }
 
 void UPDUIBattleEndWidget::OnTitleClicked()
 {
-	// TODO: 타이틀로 이동 처리
+	if (UPDUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UPDUIManagerSubsystem>())
+	{
+		UIManager->RemoveWidgetFromPanel2D(this);
+	}
+	UGameplayStatics::OpenLevel(this, TEXT("Title"));
 }
