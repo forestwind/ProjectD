@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "PDDefine.h"
 #include "PDUnitRow.generated.h"
 
 // CSV(DataTable)로 관리하는 유닛 데이터 (Content/Unit/Raw/CSV/Unit.csv)
@@ -18,6 +19,9 @@ struct PROJECTD_API FPDUnitRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit")
 	FString UnitName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Unit")
+	EUnitKind UnitType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Unit")
 	int32 StatID = 0;

@@ -36,6 +36,8 @@ public:
 
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
+	//void SetPlayerUnitGuid(const FGuid& InUnitGuid);
+
 	void DespawnUnit(const FGuid& InUnitGuid);
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
 	void UpdateMonsterCount();
@@ -55,6 +57,8 @@ protected:
 	int32 StageID;
 	int32 TotalEnemyCount = 0;
 	int32 RemainingEnemyCount = 0;
+
+	FGuid PlayerUnitGuid;
 
 	// 전투 메인 UI
 	UPROPERTY(transient)

@@ -48,8 +48,9 @@ public:
 
 	void Attack();
 	void CheckAttack();
+
+public:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-	void TakeDamaged(const float InDamage);
 
 protected:
 	// Called when the game starts or when spawned
@@ -62,6 +63,8 @@ protected:
 	void ChangeAnimation(EAIState InAIState);
 	void AnimationEnd(UAnimMontage* InMontage, bool bInterrupted);
 	void ChangeAIState(EAIState InAIState);
+
+	void TakeDamageInternal(const float InDamage);
 
 public:	
 	// Called every frame

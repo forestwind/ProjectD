@@ -23,6 +23,9 @@ public:
 	void DespawnCharacter(const FGuid InUnitGuid, bool InImmediately = false);
 	APDCharacter* FindCharacter(const FGuid InUnitGuid);
 	void AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID, const int32 InLevel);
+	int32 GetCharacterCount() const { return CharacterMap.Num(); }
+
+	TMap<FGuid, TObjectPtr<APDCharacter>> GetCharacterMap() const { return CharacterMap; }
 
 private:
 	UPROPERTY(transient)

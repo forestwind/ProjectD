@@ -4,7 +4,7 @@
 #include "PDPlayerController.h"
 
 #include "Character/PDCharacter.h"
-#include "PDGameModeBase.h"
+#include "Battle/PDBattleGameMode.h"
 
 void APDPlayerController::OnPossess(APawn* aPawn)
 {
@@ -12,11 +12,12 @@ void APDPlayerController::OnPossess(APawn* aPawn)
 
 	FInputModeGameAndUI InputModeGameAndUI;
 	SetInputMode(InputModeGameAndUI);
-	//bShowMouseCursor = false;
+	bShowMouseCursor = false;
 
 	APDCharacter* PDCharacter = Cast<APDCharacter>(aPawn);
-	if (APDGameModeBase* PDGameModeBase = Cast<APDGameModeBase>(GetWorld()->GetAuthGameMode()))
+	if (APDBattleGameMode* PDBattleGameMode = Cast<APDBattleGameMode>(GetWorld()->GetAuthGameMode()))
 	{
-		PDGameModeBase->AddCharacter(PDCharacter, PlayerUnitID);
+		PDBattleGameMode->AddCharacter(PDCharacter, PlayerUnitID);
+		//PDBattleGameMode->SetPlayerUnitGuid(PDCharacter->GetUnitGuid());
 	}
 }

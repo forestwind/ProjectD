@@ -87,7 +87,7 @@ void APDCharacter::CheckAttack()
 	FHitResult OutHitResult;
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(Attack), false, this);
 
-	const float AttackRange = 40.0f;
+	const float AttackRange = 50.0f;
 	const float AttackRadius = 50.0f;
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const FVector End = Start + GetActorForwardVector() * AttackRange;
@@ -114,29 +114,9 @@ float APDCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	TakeDamaged(DamageAmount);
+	TakeDamageInternal(DamageAmount);
 
 	return DamageAmount;
-}
-
-void APDCharacter::TakeDamaged(const float InDamage)
-{
-	if (UnitInfo.CurHP <= 0)
-	{
-		return;
-	}
-
-	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
-	UpdateUIHpBar(GetHpPercent());
-	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
-	if (UnitInfo.CurHP > 0)
-	{
-		ChangeAIState(EAIState::Damage);
-	}
-	else
-	{
-		ChangeAIState(EAIState::Die);
-	}
 }
 
 void APDCharacter::LoadInfo(const int32 UnitTableID)
@@ -359,5 +339,25 @@ void APDCharacter::ChangeAIState(EAIState InAIState)
 	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
 	{
 		PDAIController->ChangeAIState(InAIState);
+	}
+}
+
+void APDCharacter::TakeDamageInternal(const float InDamage)
+{
+	if (UnitInfo.CurHP <= 0)
+	{
+		return;
+	}
+
+	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
+	UpdateUIHpBar(GetHpPercent());
+	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
+	if (UnitInfo.CurHP > 0)
+	{
+		ChangeAIState(EAIState::Damage);
+	}
+	else
+	{
+		ChangeAIState(EAIState::Die);
 	}
 }
