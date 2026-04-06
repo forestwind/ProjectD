@@ -9,8 +9,8 @@
 #include "PDUnitStatRow.h"
 #include "PDUnitLevelRow.h"
 #include "PDStageRow.h"
-#include "../DataAsset/PDUnitDataAsset.h"
-#include "../DataAsset/Stage/PDStageDataAsset.h"
+#include "DataAsset/PDUnitDataAsset.h"
+#include "DataAsset/Stage/PDStageDataAsset.h"
 #include "PDTableManagerSubsystem.generated.h"
 
 class UDataTable;
@@ -28,29 +28,23 @@ public:
 
 protected:
 
-	// DataTable
-	// 데이터 테이블은 초기화 시 자동 로드
-
-	// UnitDataTable
+	// DataTable — Initialize() 시 자동 로드
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Unit")
 	TObjectPtr<UDataTable> UnitDataTable;
 
-	// UnitStatDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Unit")
 	TObjectPtr<UDataTable> UnitStatDataTable;
 
-	// UnitLevelDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Unit")
 	TObjectPtr<UDataTable> UnitLevelDataTable;
 
-	// StageDataTable
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Stage")
 	TObjectPtr<UDataTable> StageDataTable;
 
-	// ID 기반 빠른 조회를 위한 캐시 맵
+	// ID 기반 빠른 조회를 위한 캐시 맵 (Key: 각 Row의 ID)
 	TMap<int32, const FPDUnitRow*> UnitMap;
 	TMap<int32, const FPDUnitStatRow*> UnitStatMap;
-	TMap<int32, const FPDUnitLevelRow*> UnitLevelMap; // Key: Level
+	TMap<int32, const FPDUnitLevelRow*> UnitLevelMap;
 	TMap<int32, const FPDStageRow*> StageMap;
 
 	// DataTable을 맵으로 변환
@@ -81,8 +75,8 @@ public:
 	// Stage ID로 스테이지 데이터 조회
 	const FPDStageRow* GetStage(int32 StageID) const;
 
-	// 유닛 BP 조회
-	UClass* GetUnitBP(const int32 InUnitID);
+	// 유닛 BP 조회 — 첫 호출 시 DataAsset을 캐시에 로드
+	UClass* GetUnitBP(int32 InUnitID);
 
 	UFUNCTION(BlueprintCallable, Category = "Table|Unit")
 	UDataTable* GetUnitDataTable() const { return UnitDataTable; }

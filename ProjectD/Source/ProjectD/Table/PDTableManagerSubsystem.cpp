@@ -90,9 +90,18 @@ void UPDTableManagerSubsystem::BuildUnitMap()
 
 	for (const FPDUnitRow* Row : AllRows)
 	{
-		if (!Row) continue;
-		if (Row->ID <= 0) continue;
-		if (UnitMap.Contains(Row->ID)) continue;
+		if (!Row)
+		{
+			continue;
+		}
+		if (Row->ID <= 0)
+		{
+			continue;
+		}
+		if (UnitMap.Contains(Row->ID))
+		{
+			continue;
+		}
 
 		UnitMap.Add(Row->ID, Row);
 		++LoadedCount;
@@ -117,9 +126,18 @@ void UPDTableManagerSubsystem::BuildUnitStatMap()
 
 	for (const FPDUnitStatRow* Row : AllRows)
 	{
-		if (!Row) continue;
-		if (Row->ID <= 0) continue;
-		if (UnitStatMap.Contains(Row->ID)) continue;
+		if (!Row)
+		{
+			continue;
+		}
+		if (Row->ID <= 0)
+		{
+			continue;
+		}
+		if (UnitStatMap.Contains(Row->ID))
+		{
+			continue;
+		}
 
 		UnitStatMap.Add(Row->ID, Row);
 		++LoadedCount;
@@ -144,9 +162,18 @@ void UPDTableManagerSubsystem::BuildUnitLevelMap()
 
 	for (const FPDUnitLevelRow* Row : AllRows)
 	{
-		if (!Row) continue;
-		if (Row->Level <= 0) continue;
-		if (UnitLevelMap.Contains(Row->Level)) continue;
+		if (!Row)
+		{
+			continue;
+		}
+		if (Row->Level <= 0)
+		{
+			continue;
+		}
+		if (UnitLevelMap.Contains(Row->Level))
+		{
+			continue;
+		}
 
 		UnitLevelMap.Add(Row->Level, Row);
 		++LoadedCount;
@@ -171,9 +198,18 @@ void UPDTableManagerSubsystem::BuildStageMap()
 
 	for (const FPDStageRow* Row : AllRows)
 	{
-		if (!Row) continue;
-		if (Row->ID <= 0) continue;
-		if (StageMap.Contains(Row->ID)) continue;
+		if (!Row)
+		{
+			continue;
+		}
+		if (Row->ID <= 0)
+		{
+			continue;
+		}
+		if (StageMap.Contains(Row->ID))
+		{
+			continue;
+		}
 
 		StageMap.Add(Row->ID, Row);
 		++LoadedCount;
@@ -184,36 +220,48 @@ void UPDTableManagerSubsystem::BuildStageMap()
 
 const FPDUnitRow* UPDTableManagerSubsystem::GetUnit(int32 UnitID) const
 {
-	if (UnitID <= 0) return nullptr;
+	if (UnitID <= 0)
+	{
+		return nullptr;
+	}
 	const FPDUnitRow* const* FoundRow = UnitMap.Find(UnitID);
 	return FoundRow ? *FoundRow : nullptr;
 }
 
 const FPDUnitStatRow* UPDTableManagerSubsystem::GetUnitStat(int32 StatID) const
 {
-	if (StatID <= 0) return nullptr;
+	if (StatID <= 0)
+	{
+		return nullptr;
+	}
 	const FPDUnitStatRow* const* FoundRow = UnitStatMap.Find(StatID);
 	return FoundRow ? *FoundRow : nullptr;
 }
 
 const FPDUnitLevelRow* UPDTableManagerSubsystem::GetUnitLevel(int32 Level) const
 {
-	if (Level <= 0) return nullptr;
+	if (Level <= 0)
+	{
+		return nullptr;
+	}
 	const FPDUnitLevelRow* const* FoundRow = UnitLevelMap.Find(Level);
 	return FoundRow ? *FoundRow : nullptr;
 }
 
 const FPDStageRow* UPDTableManagerSubsystem::GetStage(int32 StageID) const
 {
-	if (StageID <= 0) return nullptr;
+	if (StageID <= 0)
+	{
+		return nullptr;
+	}
 	const FPDStageRow* const* FoundRow = StageMap.Find(StageID);
 	return FoundRow ? *FoundRow : nullptr;
 }
 
-UClass* UPDTableManagerSubsystem::GetUnitBP(const int32 InUnitID)
+UClass* UPDTableManagerSubsystem::GetUnitBP(int32 InUnitID)
 {
 	const FPDUnitRow* UnitData = GetUnit(InUnitID);
-	if (UnitData == nullptr)
+	if (!UnitData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Invalid UnitData %d"), InUnitID);
 		return nullptr;

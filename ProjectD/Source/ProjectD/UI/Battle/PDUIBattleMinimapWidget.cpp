@@ -23,13 +23,22 @@ int32 UPDUIBattleMinimapWidget::NativePaint(
 	const FVector2D Center = Size * 0.5f;
 
 	UWorld* World = GetWorld();
-	if (!World) return LayerId;
+	if (!World)
+	{
+		return LayerId;
+	}
 
 	APlayerController* PC = World->GetFirstPlayerController();
-	if (!PC) return LayerId;
+	if (!PC)
+	{
+		return LayerId;
+	}
 
 	APawn* PlayerPawn = PC->GetPawn();
-	if (!PlayerPawn) return LayerId;
+	if (!PlayerPawn)
+	{
+		return LayerId;
+	}
 
 	const FVector PlayerPos = PlayerPawn->GetActorLocation();
 
@@ -40,18 +49,30 @@ int32 UPDUIBattleMinimapWidget::NativePaint(
 	DrawDot(AllottedGeometry, OutDrawElements, LayerId, Center, PlayerColor);
 
 	APDBattleGameMode* GM = World->GetAuthGameMode<APDBattleGameMode>();
-	if (!GM) return LayerId;
+	if (!GM)
+	{
+		return LayerId;
+	}
 
 	UModelManager* ModelManager = GM->GetModelManager();
-	if (!ModelManager) return LayerId;
+	if (!ModelManager)
+	{
+		return LayerId;
+	}
 
 	for (const auto& Pair : ModelManager->GetCharacterMap())
 	{
 		APDCharacter* Char = Pair.Value.Get();
-		if (!Char) continue;
+		if (!Char)
+		{
+			continue;
+		}
 
 		// 몬스터만 점으로 표시. 플레이어는 이미 중심에 그렸으므로 스킵.
-		if (!Cast<APDMonsterCharacter>(Char)) continue;
+		if (!Cast<APDMonsterCharacter>(Char))
+		{
+			continue;
+		}
 
 		const FVector MonsterPos = Char->GetActorLocation();
 		
@@ -65,7 +86,10 @@ int32 UPDUIBattleMinimapWidget::NativePaint(
 
 		// MapRange 기준으로 -1 ~ +1 정규화. 범위 밖 몬스터는 그리지 않는다.
 		const FVector2D Ratio = Offset / MapRange;
-		if (FMath::Abs(Ratio.X) > 1.f || FMath::Abs(Ratio.Y) > 1.f) continue;
+		if (FMath::Abs(Ratio.X) > 1.f || FMath::Abs(Ratio.Y) > 1.f)
+		{
+			continue;
+		}
 
 		// 정규화 비율 × 미니맵 반경을 중심에 더해 최종 픽셀 좌표 계산
 		const FVector2D DotPos = Center + (Ratio * (Size * 0.5f));
