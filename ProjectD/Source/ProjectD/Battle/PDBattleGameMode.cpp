@@ -172,6 +172,7 @@ void APDBattleGameMode::ShowBattleEndUI()
 {
 	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 	{
+		PC->FlushPressedKeys();
 		PC->bShowMouseCursor = true;
 		PC->SetInputMode(FInputModeUIOnly());
 	}

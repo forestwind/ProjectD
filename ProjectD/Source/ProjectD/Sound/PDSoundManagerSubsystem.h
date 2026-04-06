@@ -56,6 +56,9 @@ private:
 	/** PDGameInstance에서 SoundDataAsset을 로드하고 캐싱합니다. */
 	UPDSoundDataAsset* GetSoundDataAsset();
 
+	/** 레벨 로드 전 BGMComponent를 구 월드에서 해제합니다. */
+	void HandlePreLoadMap(const FString& MapName);
+
 	/** 레벨 로드 후 BGMComponent를 새 월드에 재등록합니다. */
 	void HandlePostLoadMap(UWorld* LoadedWorld);
 

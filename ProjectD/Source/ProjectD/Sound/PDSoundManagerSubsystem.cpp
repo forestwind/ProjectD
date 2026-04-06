@@ -11,12 +11,13 @@ void UPDSoundManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 	EnsureBGMComponent();
 
-	// UIManagerSubsystem과 동일 패턴: 레벨 로드 후 재등록
+	FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UPDSoundManagerSubsystem::HandlePreLoadMap);
 	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UPDSoundManagerSubsystem::HandlePostLoadMap);
 }
 
 void UPDSoundManagerSubsystem::Deinitialize()
 {
+	FCoreUObjectDelegates::PreLoadMap.RemoveAll(this);
 	FCoreUObjectDelegates::PostLoadMapWithWorld.RemoveAll(this);
 
 	if (BGMComponent)
@@ -137,6 +138,14 @@ UPDSoundDataAsset* UPDSoundManagerSubsystem::GetSoundDataAsset()
 
 	CachedSoundDataAsset = PDGI->SoundDataAsset.LoadSynchronous();
 	return CachedSoundDataAsset;
+}
+
+void UPDSoundManagerSubsystem::HandlePreLoadMap(const FString& MapName)
+{
+	if (BGMComponent && BGMComponent->IsRegistered())
+	{
+		BGMComponent->UnregisterComponent();
+	}
 }
 
 void UPDSoundManagerSubsystem::HandlePostLoadMap(UWorld* LoadedWorld)
