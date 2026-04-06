@@ -65,6 +65,7 @@ protected:
 	void ChangeAIState(EAIState InAIState);
 
 	void TakeDamageInternal(const float InDamage);
+	void ShowUIDamageNum(float InDamage);
 
 public:	
 	// Called every frame

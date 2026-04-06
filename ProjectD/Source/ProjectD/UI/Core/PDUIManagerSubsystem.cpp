@@ -10,6 +10,21 @@
 #include "Engine/World.h"
 #include "UObject/UObjectGlobals.h"
 
+namespace
+{
+	static void AddWidgetToCanvasAtPosition(UCanvasPanel* Panel, UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment)
+	{
+		UCanvasPanelSlot* Slot = Panel->AddChildToCanvas(Widget);
+		if (Slot)
+		{
+			Slot->SetAnchors(FAnchors(0.f, 0.f, 0.f, 0.f));
+			Slot->SetPosition(ScreenPosition);
+			Slot->SetAutoSize(true);
+			Slot->SetAlignment(Alignment);
+		}
+	}
+}
+
 void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -162,6 +177,42 @@ void UPDUIManagerSubsystem::AddWidgetToPanelOverlay(UUserWidget* Widget)
 		Slot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
 		Slot->SetOffsets(FMargin(0.f));
 	}
+}
+
+void UPDUIManagerSubsystem::AddWidgetToPanel2DAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment)
+{
+	if (!Widget || !RootUI)
+	{
+		return;
+	}
+
+	EnsureRootUIAddedToViewport();
+
+	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
+	if (!Panel2D)
+	{
+		return;
+	}
+
+	AddWidgetToCanvasAtPosition(Panel2D, Widget, ScreenPosition, Alignment);
+}
+
+void UPDUIManagerSubsystem::AddWidgetToPanelOverlayAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment)
+{
+	if (!Widget || !RootUI)
+	{
+		return;
+	}
+
+	EnsureRootUIAddedToViewport();
+
+	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
+	if (!PanelOverlay)
+	{
+		return;
+	}
+
+	AddWidgetToCanvasAtPosition(PanelOverlay, Widget, ScreenPosition, Alignment);
 }
 
 void UPDUIManagerSubsystem::RemoveWidgetFromPanel2D(UUserWidget* Widget)

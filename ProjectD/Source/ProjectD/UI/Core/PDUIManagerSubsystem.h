@@ -23,11 +23,17 @@ public:
 public:
 	UPDUIRootWidget* GetRootUI() const { return RootUI; }
 
-	/** 일반 UI 추가 (panel2d) */
+	/** 일반 UI 추가 */
 	void AddWidgetToPanel2D(UUserWidget* Widget);
 
-	/** 최상단 UI 추가 (paneloverlay) */
+	/** 일반 UI 추가 - 스크린 좌표 지정 */
+	void AddWidgetToPanel2DAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment = FVector2D(0.f, 0.f));
+
+	/** 최상단 UI 추가 */
 	void AddWidgetToPanelOverlay(UUserWidget* Widget);
+
+	/** 최상단 UI 추가 - 스크린 좌표 지정 */
+	void AddWidgetToPanelOverlayAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment = FVector2D(0.f, 0.f));
 
 	void RemoveWidgetFromPanel2D(UUserWidget* Widget);
 	void RemoveWidgetFromPanelOverlay(UUserWidget* Widget);

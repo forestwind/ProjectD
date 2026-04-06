@@ -18,6 +18,7 @@ enum class EGameState : uint8
 class UPDUIBattleMainWidget;
 class UPDUIBattleEndWidget;
 class UPDUIBattlePhaseMsgWidget;
+class UPDUIBattleDamageNumWidget;
 
 /**
  * 
@@ -41,6 +42,8 @@ public:
 	void DespawnUnit(const FGuid& InUnitGuid);
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
 	void UpdateMonsterCount();
+
+	TSubclassOf<UPDUIBattleDamageNumWidget> GetDamageNumWidgetClass() const { return DamageNumWidgetClass; }
 
 protected:
 	void ChangeGameState(const EGameState InGameState);
@@ -80,7 +83,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
 	TSubclassOf<UPDUIBattlePhaseMsgWidget> PhaseMsgWidgetClass;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
+	TSubclassOf<UPDUIBattleDamageNumWidget> DamageNumWidgetClass;
+
 	// Ready Text 표시 시간
 	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI", meta = (ClampMin = "0.0"))
 	float ReadyMessageDuration = 3.0f;

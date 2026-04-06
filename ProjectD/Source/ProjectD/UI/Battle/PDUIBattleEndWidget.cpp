@@ -33,7 +33,8 @@ void UPDUIBattleEndWidget::OnRetryClicked()
 {
 	if (UPDUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UPDUIManagerSubsystem>())
 	{
-		UIManager->RemoveWidgetFromPanel2D(this);
+		UIManager->ClearPanel2D();
+		UIManager->ClearPanelOverlay();
 	}
 	UGameplayStatics::OpenLevel(this, TEXT("ForestMap"));
 }
@@ -42,7 +43,8 @@ void UPDUIBattleEndWidget::OnTitleClicked()
 {
 	if (UPDUIManagerSubsystem* UIManager = GetGameInstance()->GetSubsystem<UPDUIManagerSubsystem>())
 	{
-		UIManager->RemoveWidgetFromPanel2D(this);
+		UIManager->ClearPanel2D();
+		UIManager->ClearPanelOverlay();
 	}
 	UGameplayStatics::OpenLevel(this, TEXT("Title"));
 }

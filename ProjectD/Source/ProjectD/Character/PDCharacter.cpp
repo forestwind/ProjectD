@@ -12,6 +12,9 @@
 #include "Table/PDUnitStatRow.h"
 #include "Table/PDUnitLevelRow.h"
 #include "Battle/PDBattleGameMode.h"
+#include "UI/Battle/PDUIBattleDamageNumWidget.h"
+#include "UI/Core/PDUIManagerSubsystem.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
 #include "PDDefine.h"
 
 #include "Camera/CameraComponent.h"
@@ -351,7 +354,9 @@ void APDCharacter::TakeDamageInternal(const float InDamage)
 
 	UnitInfo.CurHP = FMath::Max(UnitInfo.CurHP - InDamage, 0.0f);
 	UpdateUIHpBar(GetHpPercent());
+	ShowUIDamageNum(InDamage);
 	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] CurHP : %d"), UnitID, UnitInfo.CurHP);
+
 	if (UnitInfo.CurHP > 0)
 	{
 		ChangeAIState(EAIState::Damage);
@@ -360,4 +365,54 @@ void APDCharacter::TakeDamageInternal(const float InDamage)
 	{
 		ChangeAIState(EAIState::Die);
 	}
+}
+
+void APDCharacter::ShowUIDamageNum(float InDamage)
+{
+	APDBattleGameMode* BattleGM = GetWorld()->GetAuthGameMode<APDBattleGameMode>();
+	if (!BattleGM)
+	{
+		return;
+	}
+
+	TSubclassOf<UPDUIBattleDamageNumWidget> WidgetClass = BattleGM->GetDamageNumWidgetClass();
+	if (!WidgetClass)
+	{
+		return;
+	}
+
+	UGameInstance* GI = GetGameInstance();
+	if (!GI)
+	{
+		return;
+	}
+
+	UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>();
+	if (!UIManager)
+	{
+		return;
+	}
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC)
+	{
+		return;
+	}
+
+	// 캐릭터 머리 위 월드 좌표 → UMG Canvas 좌표 변환 (DPI 자동 보정)
+	const FVector HeadLocation = GetActorLocation() + FVector(0.f, 0.f, 80.f);
+	FVector2D WidgetPos;
+	if (!UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(PC, HeadLocation, WidgetPos, false))
+	{
+		return;
+	}
+
+	UPDUIBattleDamageNumWidget* Widget = CreateWidget<UPDUIBattleDamageNumWidget>(GI, WidgetClass);
+	if (!Widget)
+	{
+		return;
+	}
+	
+	UIManager->AddWidgetToPanelOverlayAtPosition(Widget, WidgetPos, FVector2D(0.5f, 1.0f));
+	Widget->ShowDamage(InDamage);
 }
