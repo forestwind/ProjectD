@@ -128,6 +128,8 @@ void APDBattleGameMode::ReadyGame()
 			if (BattleInventory)
 			{
 				BattleInventory->Initialize(TableManager, 32);
+				// 더미 아이템 기본 지급
+				BattleInventory->AddItem(1,1);
 			}
 		}
 	}
@@ -254,6 +256,7 @@ void APDBattleGameMode::SpawnStageUnit()
 			}
 			break;
 		case EPDBattleSpawnType::Item:
+			ModelManager->SpawnBattleItem(SpawnActor->SpawnTypeID, SpawnActor->GetActorLocation(), SpawnActor->GetActorRotation());
 			break;
 		default:
 			break;

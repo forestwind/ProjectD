@@ -7,6 +7,7 @@
 #include "ModelManager.generated.h"
 
 class APDCharacter;
+class APDBattleItemActor;
 /**
  * 
  */
@@ -27,7 +28,17 @@ public:
 
 	TMap<FGuid, TObjectPtr<APDCharacter>> GetCharacterMap() const { return CharacterMap; }
 
+	APDBattleItemActor* SpawnBattleItem(int32 ItemID, const FVector& InPosition, const FRotator& InRotation);
+	void DespawnBattleItem(const FGuid InItemGuid);
+	APDBattleItemActor* FindBattleItem(const FGuid InItemGuid);
+	int32 GetBattleItemCount() const { return BattleItemMap.Num(); }
+
+	TMap<FGuid, TObjectPtr<APDBattleItemActor>> GetBattleItemMap() const { return BattleItemMap; }
+
 private:
 	UPROPERTY(transient)
 	TMap<FGuid, TObjectPtr<APDCharacter>> CharacterMap;
+
+	UPROPERTY(transient)
+	TMap<FGuid, TObjectPtr<APDBattleItemActor>> BattleItemMap;
 };

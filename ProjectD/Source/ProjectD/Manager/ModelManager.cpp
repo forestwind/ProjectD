@@ -3,6 +3,7 @@
 
 #include "ModelManager.h"
 
+#include "Battle/PDBattleItemActor.h"
 #include "Character/PDCharacter.h"
 #include "Table/PDTableManagerSubsystem.h"
 #include "Table/PDUnitRow.h"
@@ -13,10 +14,19 @@
 UModelManager::UModelManager()
 {
 	CharacterMap.Empty();
+	BattleItemMap.Empty();
 }
 
 void UModelManager::BeginDestroy()
 {
+	for (TPair<FGuid, TObjectPtr<APDBattleItemActor>>& Pair : BattleItemMap)
+	{
+		if (APDBattleItemActor* PDBattleItemActor = Pair.Value.Get())
+		{
+			PDBattleItemActor->Destroy();
+		}
+	}
+	BattleItemMap.Empty();
 	CharacterMap.Empty();
 
 	Super::BeginDestroy();
@@ -101,4 +111,58 @@ void UModelManager::AddCharacter(APDCharacter* PDCharacter, const int32 InUnitID
 	FGuid NewGuid = FGuid::NewGuid();
 	PDCharacter->SetInfo(InUnitID, InLevel, NewGuid);
 	CharacterMap.Add(NewGuid, PDCharacter);
+}
+
+APDBattleItemActor* UModelManager::SpawnBattleItem(int32 ItemID, const FVector& InPosition, const FRotator& InRotation)
+{
+	UPDTableManagerSubsystem* TableManager = UGameInstance::GetSubsystem<UPDTableManagerSubsystem>(UGameplayStatics::GetGameInstance(this));
+	if (TableManager == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid TableManager"));
+		return nullptr;
+	}
+
+	if (TableManager->GetBattleItem(ItemID) == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid ItemID %d"), ItemID);
+		return nullptr;
+	}
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	APDBattleItemActor* PDBattleItemActor = GetWorld()->SpawnActor<APDBattleItemActor>(APDBattleItemActor::StaticClass(), InPosition, InRotation, SpawnInfo);
+	if (PDBattleItemActor == nullptr)
+	{
+		return nullptr;
+	}
+
+	FGuid NewGuid = FGuid::NewGuid();
+	PDBattleItemActor->Initialize(NewGuid, ItemID);
+	BattleItemMap.Add(NewGuid, PDBattleItemActor);
+
+	return PDBattleItemActor;
+}
+
+void UModelManager::DespawnBattleItem(const FGuid InItemGuid)
+{
+	if (BattleItemMap.Contains(InItemGuid))
+	{
+		if (APDBattleItemActor* PDBattleItemActor = *BattleItemMap.Find(InItemGuid))
+		{
+			PDBattleItemActor->Destroy();
+		}
+		BattleItemMap.Remove(InItemGuid);
+	}
+}
+
+APDBattleItemActor* UModelManager::FindBattleItem(const FGuid InItemGuid)
+{
+	APDBattleItemActor* PDBattleItemActor = nullptr;
+	if (BattleItemMap.Contains(InItemGuid))
+	{
+		PDBattleItemActor = *BattleItemMap.Find(InItemGuid);
+	}
+
+	return PDBattleItemActor;
 }
