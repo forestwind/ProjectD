@@ -6,6 +6,74 @@
 
 namespace
 {
+	static int32 GetRowMapKey(const FPDUnitRow& Row)
+	{
+		return Row.ID;
+	}
+
+	static int32 GetRowMapKey(const FPDUnitStatRow& Row)
+	{
+		return Row.ID;
+	}
+
+	static int32 GetRowMapKey(const FPDUnitLevelRow& Row)
+	{
+		return Row.Level;
+	}
+
+	static int32 GetRowMapKey(const FPDStageRow& Row)
+	{
+		return Row.ID;
+	}
+
+	static int32 GetRowMapKey(const FPDBattleItemRow& Row)
+	{
+		return Row.ID;
+	}
+
+	template <typename RowType>
+	void BuildRowMapById(
+		UDataTable* InDataTable,
+		TMap<int32, const RowType*>& OutMap,
+		const TCHAR* InTableLabel,
+		const TCHAR* InContext)
+	{
+		OutMap.Empty();
+
+		if (!InDataTable)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] %sDataTable is null!"), InTableLabel);
+			return;
+		}
+
+		int32 LoadedCount = 0;
+		TArray<RowType*> AllRows;
+		InDataTable->GetAllRows(InContext, AllRows);
+
+		for (const RowType* Row : AllRows)
+		{
+			if (!Row)
+			{
+				continue;
+			}
+
+			const int32 RowID = GetRowMapKey(*Row);
+			if (RowID <= 0)
+			{
+				continue;
+			}
+			if (OutMap.Contains(RowID))
+			{
+				continue;
+			}
+
+			OutMap.Add(RowID, Row);
+			++LoadedCount;
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] %sMap built. Total entries: %d"), InTableLabel, LoadedCount);
+	}
+
 	// "DA_Unit_001" 처럼 "에셋 이름"만 허용
 	static FString MakeUnitDataAssetObjectPathFromName(FString In)
 	{
@@ -50,12 +118,14 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UnitStatDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitStat"));
 	UnitLevelDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitLevel"));
 	StageDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Stage"));
+	BattleItemDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_BattleItem"));
 
 	// DataTable을 맵으로 변환 (RowName 의존 제거)
 	BuildUnitMap();
 	BuildUnitStatMap();
 	BuildUnitLevelMap();
 	BuildStageMap();
+	BuildBattleItemMap();
 }
 
 void UPDTableManagerSubsystem::Deinitialize()
@@ -66,156 +136,59 @@ void UPDTableManagerSubsystem::Deinitialize()
 	UnitStatMap.Empty();
 	UnitLevelMap.Empty();
 	StageMap.Empty();
+	BattleItemMap.Empty();
 
 	UnitDataTable = nullptr;
 	UnitStatDataTable = nullptr;
 	UnitLevelDataTable = nullptr;
 	StageDataTable = nullptr;
+	BattleItemDataTable = nullptr;
 	Super::Deinitialize();
 }
 
 void UPDTableManagerSubsystem::BuildUnitMap()
 {
-	UnitMap.Empty();
-
-	if (!UnitDataTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitDataTable is null!"));
-		return;
-	}
-
-	int32 LoadedCount = 0;
-	TArray<FPDUnitRow*> AllRows;
-	UnitDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitMap"), AllRows);
-
-	for (const FPDUnitRow* Row : AllRows)
-	{
-		if (!Row)
-		{
-			continue;
-		}
-		if (Row->ID <= 0)
-		{
-			continue;
-		}
-		if (UnitMap.Contains(Row->ID))
-		{
-			continue;
-		}
-
-		UnitMap.Add(Row->ID, Row);
-		++LoadedCount;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UnitMap built. Total entries: %d"), LoadedCount);
+	BuildRowMapById<FPDUnitRow>(
+		UnitDataTable,
+		UnitMap,
+		TEXT("Unit"),
+		TEXT("UPDTableManagerSubsystem::BuildUnitMap"));
 }
 
 void UPDTableManagerSubsystem::BuildUnitStatMap()
 {
-	UnitStatMap.Empty();
-
-	if (!UnitStatDataTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitStatDataTable is null!"));
-		return;
-	}
-
-	int32 LoadedCount = 0;
-	TArray<FPDUnitStatRow*> AllRows;
-	UnitStatDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitStatMap"), AllRows);
-
-	for (const FPDUnitStatRow* Row : AllRows)
-	{
-		if (!Row)
-		{
-			continue;
-		}
-		if (Row->ID <= 0)
-		{
-			continue;
-		}
-		if (UnitStatMap.Contains(Row->ID))
-		{
-			continue;
-		}
-
-		UnitStatMap.Add(Row->ID, Row);
-		++LoadedCount;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UnitStatMap built. Total entries: %d"), LoadedCount);
+	BuildRowMapById<FPDUnitStatRow>(
+		UnitStatDataTable,
+		UnitStatMap,
+		TEXT("UnitStat"),
+		TEXT("UPDTableManagerSubsystem::BuildUnitStatMap"));
 }
 
 void UPDTableManagerSubsystem::BuildUnitLevelMap()
 {
-	UnitLevelMap.Empty();
-
-	if (!UnitLevelDataTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UnitLevelDataTable is null!"));
-		return;
-	}
-
-	int32 LoadedCount = 0;
-	TArray<FPDUnitLevelRow*> AllRows;
-	UnitLevelDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUnitLevelMap"), AllRows);
-
-	for (const FPDUnitLevelRow* Row : AllRows)
-	{
-		if (!Row)
-		{
-			continue;
-		}
-		if (Row->Level <= 0)
-		{
-			continue;
-		}
-		if (UnitLevelMap.Contains(Row->Level))
-		{
-			continue;
-		}
-
-		UnitLevelMap.Add(Row->Level, Row);
-		++LoadedCount;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UnitLevelMap built. Total entries: %d"), LoadedCount);
+	BuildRowMapById<FPDUnitLevelRow>(
+		UnitLevelDataTable,
+		UnitLevelMap,
+		TEXT("UnitLevel"),
+		TEXT("UPDTableManagerSubsystem::BuildUnitLevelMap"));
 }
 
 void UPDTableManagerSubsystem::BuildStageMap()
 {
-	StageMap.Empty();
+	BuildRowMapById<FPDStageRow>(
+		StageDataTable,
+		StageMap,
+		TEXT("Stage"),
+		TEXT("UPDTableManagerSubsystem::BuildStageMap"));
+}
 
-	if (!StageDataTable)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] StageDataTable is null!"));
-		return;
-	}
-
-	int32 LoadedCount = 0;
-	TArray<FPDStageRow*> AllRows;
-	StageDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildStageMap"), AllRows);
-
-	for (const FPDStageRow* Row : AllRows)
-	{
-		if (!Row)
-		{
-			continue;
-		}
-		if (Row->ID <= 0)
-		{
-			continue;
-		}
-		if (StageMap.Contains(Row->ID))
-		{
-			continue;
-		}
-
-		StageMap.Add(Row->ID, Row);
-		++LoadedCount;
-	}
-
-	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] StageMap built. Total entries: %d"), LoadedCount);
+void UPDTableManagerSubsystem::BuildBattleItemMap()
+{
+	BuildRowMapById<FPDBattleItemRow>(
+		BattleItemDataTable,
+		BattleItemMap,
+		TEXT("BattleItem"),
+		TEXT("UPDTableManagerSubsystem::BuildBattleItemMap"));
 }
 
 const FPDUnitRow* UPDTableManagerSubsystem::GetUnit(int32 UnitID) const
@@ -255,6 +228,16 @@ const FPDStageRow* UPDTableManagerSubsystem::GetStage(int32 StageID) const
 		return nullptr;
 	}
 	const FPDStageRow* const* FoundRow = StageMap.Find(StageID);
+	return FoundRow ? *FoundRow : nullptr;
+}
+
+const FPDBattleItemRow* UPDTableManagerSubsystem::GetBattleItem(int32 ItemID) const
+{
+	if (ItemID <= 0)
+	{
+		return nullptr;
+	}
+	const FPDBattleItemRow* const* FoundRow = BattleItemMap.Find(ItemID);
 	return FoundRow ? *FoundRow : nullptr;
 }
 

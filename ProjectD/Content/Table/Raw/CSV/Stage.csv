@@ -1,3 +1,3 @@
-Name,ID,StageName,MonsterGroup,DataAssetName
-1,1,Forest,1,DA_ForestMap
-2,2,Ruins,1,DA_Ruins
+Name,ID,StageName,DataAssetName
+1,1,Forest,DA_ForestMap
+2,2,Ruins,DA_Ruins

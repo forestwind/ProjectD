@@ -20,6 +20,8 @@ APDBattleGameMode::APDBattleGameMode()
 {
 	GameStateType = EGameState::Ready;
 	StageID = 1;
+
+	BattleInventory = CreateDefaultSubobject<UPDBattleInventory>(TEXT("BattleInventory"));
 }
 
 void APDBattleGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -119,6 +121,17 @@ void APDBattleGameMode::ChangeGameState(const EGameState InGameState)
 
 void APDBattleGameMode::ReadyGame()
 {
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UPDTableManagerSubsystem* TableManager = GI->GetSubsystem<UPDTableManagerSubsystem>())
+		{
+			if (BattleInventory)
+			{
+				BattleInventory->Initialize(TableManager, 32);
+			}
+		}
+	}
+
 	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
 	{
 		PC->SetInputMode(FInputModeUIOnly());

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "../PDGameModeBase.h"
+#include "Battle/Inventory/PDBattleInventory.h"
 #include "PDBattleGameMode.generated.h"
 
 UENUM()
@@ -45,6 +46,8 @@ public:
 
 	TSubclassOf<UPDUIBattleDamageNumWidget> GetDamageNumWidgetClass() const { return DamageNumWidgetClass; }
 
+	UPDBattleInventory* GetBattleInventory() const { return BattleInventory; }
+
 protected:
 	void ChangeGameState(const EGameState InGameState);
 	void ReadyGame();
@@ -62,6 +65,9 @@ protected:
 	int32 RemainingEnemyCount = 0;
 
 	FGuid PlayerUnitGuid;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle|Inventory")
+	TObjectPtr<UPDBattleInventory> BattleInventory;
 
 	// 전투 메인 UI
 	UPROPERTY(transient)
