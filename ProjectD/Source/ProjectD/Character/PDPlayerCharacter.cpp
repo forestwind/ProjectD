@@ -12,6 +12,7 @@
 #include "InputAction.h"
 #include "InputMappingContext.h"
 #include "GameFramework/PlayerController.h"
+#include "Battle/PDBattleGameMode.h"
 
 
 // Sets default values
@@ -43,10 +44,13 @@ APDPlayerCharacter::APDPlayerCharacter()
 		TEXT("/Game/Input/IA_BattlePlayerMove.IA_BattlePlayerMove");
 	static const TCHAR* AttackActionPath =
 		TEXT("/Game/Input/IA_BattlePlayerAttack.IA_BattlePlayerAttack");
+	static const TCHAR* InventoryActionPath =
+		TEXT("/Game/Input/IA_BattleInventory.IA_BattleInventory");
 
 	MoveMappingContext = LoadObject<UInputMappingContext>(nullptr, MoveIMCPath);
 	MoveAction = LoadObject<UInputAction>(nullptr, MoveActionPath);
 	AttackAction = LoadObject<UInputAction>(nullptr, AttackActionPath);
+	InventoryAction = LoadObject<UInputAction>(nullptr, InventoryActionPath);
 }
 
 void APDPlayerCharacter::PossessedBy(AController* NewController)
@@ -91,6 +95,11 @@ void APDPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 			// 연속 입력: Triggered 사용
 			EIC->BindAction(AttackAction, ETriggerEvent::Triggered, this, &APDPlayerCharacter::HandleAttack);
 		}
+
+		if (InventoryAction)
+		{
+			EIC->BindAction(InventoryAction, ETriggerEvent::Started, this, &APDPlayerCharacter::HandleInventory);
+		}
 	}
 }
 
@@ -122,6 +131,14 @@ void APDPlayerCharacter::HandleMove(const FInputActionValue& Value)
 void APDPlayerCharacter::HandleAttack()
 {
 	Attack();
+}
+
+void APDPlayerCharacter::HandleInventory()
+{
+	if (APDBattleGameMode* BattleGM = GetWorld()->GetAuthGameMode<APDBattleGameMode>())
+	{
+		BattleGM->ToggleBattleInventory();
+	}
 }
 
 void APDPlayerCharacter::ApplyCameraSettings()

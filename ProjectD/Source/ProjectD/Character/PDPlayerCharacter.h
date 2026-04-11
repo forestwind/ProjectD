@@ -44,12 +44,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> AttackAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> InventoryAction;
+
 protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	void HandleMove(const FInputActionValue& Value);
 	void HandleAttack();
+	void HandleInventory();
 
 	void ApplyCameraSettings();
 };

@@ -7,6 +7,7 @@
 #include "UI/Battle/PDUIBattleMainWidget.h"
 #include "UI/Battle/PDUIBattleEndWidget.h"
 #include "UI/Battle/PDUIBattlePhaseMsgWidget.h"
+#include "UI/Battle/PDUIBattleInventoryWidget.h"
 #include "Manager/ModelManager.h"
 #include "Battle/PDBattleSpawnActor.h"
 #include "Character/PDCharacter.h"
@@ -21,7 +22,6 @@ APDBattleGameMode::APDBattleGameMode()
 	GameStateType = EGameState::Ready;
 	StageID = 1;
 
-	BattleInventory = CreateDefaultSubobject<UPDBattleInventory>(TEXT("BattleInventory"));
 }
 
 void APDBattleGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -121,16 +121,15 @@ void APDBattleGameMode::ChangeGameState(const EGameState InGameState)
 
 void APDBattleGameMode::ReadyGame()
 {
+	BattleInventory = NewObject<UPDBattleInventory>(this, TEXT("BattleInventory"));
+
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		if (UPDTableManagerSubsystem* TableManager = GI->GetSubsystem<UPDTableManagerSubsystem>())
 		{
-			if (BattleInventory)
-			{
-				BattleInventory->Initialize(TableManager, 32);
-				// 더미 아이템 기본 지급
-				BattleInventory->AddItem(1,1);
-			}
+			BattleInventory->Initialize(TableManager, 32);
+			// 더미 아이템 기본 지급
+			BattleInventory->AddItem(1, 1);
 		}
 	}
 
@@ -143,6 +142,8 @@ void APDBattleGameMode::ReadyGame()
 	StartStage(StageID);
 	SpawnStageUnit();
 	ShowUIPhaseMessage(EGameState::Ready);
+
+	CreateUI();
 
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	if (UPDSoundManagerSubsystem* SoundMgr = GI ? GI->GetSubsystem<UPDSoundManagerSubsystem>() : nullptr)
@@ -162,17 +163,12 @@ void APDBattleGameMode::StartGame()
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][StartGame] Game Start!!"));
 	ShowUIPhaseMessage(EGameState::Play);
 
-	UGameInstance* GI = GetWorld()->GetGameInstance();
-	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
-	if (UIManager && BattleMainWidgetClass)
+	if (BattleMainWidget)
 	{
-		BattleMainWidget = CreateWidget<UPDUIBattleMainWidget>(GI, BattleMainWidgetClass);
-		if (BattleMainWidget)
-		{
-			UIManager->AddWidgetToPanel2D(BattleMainWidget);
-			UpdateMonsterCount();
-		}
+		BattleMainWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		UpdateMonsterCount();
 	}
+
 }
 
 void APDBattleGameMode::EndGame()
@@ -222,6 +218,35 @@ void APDBattleGameMode::ShowBattleEndUI()
 void APDBattleGameMode::StartStage(const int32 InStageID)
 {
 	StageID = InStageID;
+}
+
+void APDBattleGameMode::CreateUI()
+{
+	UGameInstance* GI = GetWorld()->GetGameInstance();
+	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
+
+	// 1) BattleMainWidget (미니맵 포함) 먼저 생성·추가 → 아래 레이어
+	if (UIManager && BattleMainWidgetClass)
+	{
+		BattleMainWidget = CreateWidget<UPDUIBattleMainWidget>(GI, BattleMainWidgetClass);
+		if (BattleMainWidget)
+		{
+			UIManager->AddWidgetToPanel2D(BattleMainWidget);
+			BattleMainWidget->SetVisibility(ESlateVisibility::Collapsed);
+		}
+	}
+
+	// 2) 인벤토리 위젯 그 다음 생성·추가 → 위 레이어 (미니맵보다 앞)
+	if (UIManager && BattleInventoryWidgetClass)
+	{
+		BattleInventoryWidget = CreateWidget<UPDUIBattleInventoryWidget>(GI, BattleInventoryWidgetClass);
+		if (BattleInventoryWidget)
+		{
+			UIManager->AddWidgetToPanel2D(BattleInventoryWidget);
+			BattleInventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
+			bInventoryVisible = false;
+		}
+	}
 }
 
 void APDBattleGameMode::SpawnStageUnit()
@@ -356,4 +381,25 @@ void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
 			HidePhaseMessage();
 		}
 	}
+}
+
+void APDBattleGameMode::ToggleBattleInventory()
+{
+	if (!BattleInventoryWidget)
+	{
+		return;
+	}
+
+	bInventoryVisible = !bInventoryVisible;
+
+	if (bInventoryVisible && BattleInventory)
+	{
+		BattleInventoryWidget->ClearItems();
+		for (const FPDBattleInventorySlot& Slot : BattleInventory->GetSlots())
+		{
+			BattleInventoryWidget->AddItem(Slot);
+		}
+	}
+
+	BattleInventoryWidget->SetVisibility(bInventoryVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
 }
