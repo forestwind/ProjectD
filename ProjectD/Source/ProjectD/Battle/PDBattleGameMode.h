@@ -20,6 +20,7 @@ class UPDUIBattleMainWidget;
 class UPDUIBattleEndWidget;
 class UPDUIBattlePhaseMsgWidget;
 class UPDUIBattleDamageNumWidget;
+class UPDUIBattleInventoryWidget;
 
 /**
  * 
@@ -45,6 +46,8 @@ public:
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
 	void UpdateMonsterCount();
 
+	void ToggleBattleInventory();
+
 	TSubclassOf<UPDUIBattleDamageNumWidget> GetDamageNumWidgetClass() const { return DamageNumWidgetClass; }
 
 	UPDBattleInventory* GetBattleInventory() const { return BattleInventory; }
@@ -57,6 +60,7 @@ protected:
 
 	void StartStage(const int32 InStageID);
 	void SpawnStageUnit();
+	void CreateUI();
 
 protected:
 
@@ -67,12 +71,18 @@ protected:
 
 	FGuid PlayerUnitGuid;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Battle|Inventory")
+	UPROPERTY(Transient)
 	TObjectPtr<UPDBattleInventory> BattleInventory;
 
 	// 전투 메인 UI
 	UPROPERTY(transient)
 	TObjectPtr<UPDUIBattleMainWidget> BattleMainWidget;
+
+	// 전투 인벤토리 UI
+	UPROPERTY(transient)
+	TObjectPtr<UPDUIBattleInventoryWidget> BattleInventoryWidget;
+
+	bool bInventoryVisible = false;
 
 	// 전투 종료 결과 UI
 	UPROPERTY(transient)
@@ -93,6 +103,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
 	TSubclassOf<UPDUIBattleDamageNumWidget> DamageNumWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
+	TSubclassOf<UPDUIBattleInventoryWidget> BattleInventoryWidgetClass;
 
 	// Ready Text 표시 시간
 	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI", meta = (ClampMin = "0.0"))
