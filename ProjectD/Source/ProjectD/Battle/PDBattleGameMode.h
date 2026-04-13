@@ -41,6 +41,7 @@ public:
 	void SetPlayerUnitGuid(const FGuid& InUnitGuid);
 
 	void DespawnUnit(const FGuid& InUnitGuid);
+	void DespawnItem(const FGuid& InItemGuid);
 	void UpdatePlayerHP(int32 CurHP, int32 MaxHP);
 	void UpdateMonsterCount();
 

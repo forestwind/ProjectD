@@ -2,21 +2,27 @@
 
 #include "Battle/PDBattleItemActor.h"
 
-#include "Components/SceneComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Character/PDPlayerCharacter.h"
+#include "Battle/PDBattleGameMode.h"
+#include "PDDefine.h"
 
 APDBattleItemActor::APDBattleItemActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	RootScene = CreateDefaultSubobject<USceneComponent>(TEXT("RootScene"));
-	SetRootComponent(RootScene);
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
+	SetRootComponent(BoxComponent);
+
+	BoxComponent->SetCollisionProfileName(CPROFILE_PDTRIGGER);
+	BoxComponent->SetBoxExtent(FVector(40.f, 40.f, 40.f));
+	BoxComponent->OnComponentBeginOverlap.AddDynamic(this, &APDBattleItemActor::OnOverlapBegin);
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	MeshComponent->SetCollisionObjectType(ECC_WorldDynamic);
+	MeshComponent->SetCollisionProfileName(TEXT("NoCollision"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube.Cube"));
 	if (CubeMeshAsset.Succeeded())
@@ -30,4 +36,23 @@ void APDBattleItemActor::Initialize(const FGuid& InItemGuid, int32 InItemID)
 {
 	ItemGuid = InItemGuid;
 	ItemID = InItemID;
+}
+
+void APDBattleItemActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// 아이템과 충돌한 액터가 플레이어 캐릭터인 경우에만 처리
+	if (OtherActor && OtherComp)
+	{
+		APDPlayerCharacter* PlayerCharacter = Cast<APDPlayerCharacter>(OtherActor);
+		if (PlayerCharacter)
+		{
+			// 아이템 획득 처리
+			UE_LOG(LogTemp, Log, TEXT("[PD][BattleItemActor][OnOverlapBegin] Player picked up item with ID: %d"), ItemID);
+			// 아이템 액터 제거
+			if (APDBattleGameMode* BattleGameMode = Cast<APDBattleGameMode>(GetWorld()->GetAuthGameMode()))
+			{
+				BattleGameMode->DespawnItem(ItemGuid);
+			}
+		}
+	}
 }

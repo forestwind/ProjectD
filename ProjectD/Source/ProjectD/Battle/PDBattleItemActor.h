@@ -7,6 +7,7 @@
 #include "PDBattleItemActor.generated.h"
 
 class UStaticMeshComponent;
+class UBoxComponent;
 
 /**
  * 레벨에 배치되는 배틀 아이템 액터
@@ -28,8 +29,13 @@ public:
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 
 protected:
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BattleItemActor")
-	TObjectPtr<USceneComponent> RootScene;
+	TObjectPtr<UBoxComponent> BoxComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BattleItemActor")
 	FGuid ItemGuid;

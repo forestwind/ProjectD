@@ -98,6 +98,14 @@ void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 	}
 }
 
+void APDBattleGameMode::DespawnItem(const FGuid& InItemGuid)
+{
+	if (ModelManager)
+	{
+		ModelManager->DespawnBattleItem(InItemGuid);
+	}
+}
+
 void APDBattleGameMode::UpdateMonsterCount()
 {
 	if (BattleMainWidget)
