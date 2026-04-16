@@ -62,6 +62,7 @@ protected:
 	void LoadAnimation();
 	void ChangeAnimation(EAIState InAIState);
 	void AnimationEnd(UAnimMontage* InMontage, bool bInterrupted);
+	virtual void NotifyAttackEnd();
 	void ChangeAIState(EAIState InAIState);
 
 	void TakeDamageInternal(const float InDamage);
@@ -105,4 +106,5 @@ protected:
 	int32 UnitID;
 
 	FUnitInfo UnitInfo;
+	EAIState CurAIState;
 };

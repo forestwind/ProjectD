@@ -28,7 +28,7 @@ APDCharacter::APDCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
-	AIControllerClass = APDAIController::StaticClass();
+	//AIControllerClass = APDAIController::StaticClass();
 	UnitAsset = nullptr;
 	IdleMontage = nullptr;
 	AttackMontage = nullptr;
@@ -37,6 +37,7 @@ APDCharacter::APDCharacter()
 
 	UnitGuid = FGuid();
 	UnitID = 1;
+	CurAIState = EAIState::Ready;
 
 	GetCapsuleComponent()->SetCollisionProfileName(CPROFILE_PDPAWN);
 	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
@@ -235,11 +236,12 @@ void APDCharacter::LoadAnimation()
 
 void APDCharacter::ChangeAnimation(EAIState InAIState)
 {
-	if (InAIState == EAIState::Max)
+	if (InAIState == EAIState::Max || CurAIState == InAIState)
 	{
 		return;
 	}
-
+	
+	CurAIState = InAIState;
 	UAnimInstance* AnimInstance = GetMesh() == nullptr ? nullptr : GetMesh()->GetAnimInstance();
 	if (AnimInstance == nullptr)
 	{
@@ -328,12 +330,17 @@ void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 		{
 			MovementComponent->SetMovementMode(EMovementMode::MOVE_Walking);
 		}
+		NotifyAttackEnd();
 		ChangeAIState(EAIState::Idle);
 	}
 	else if (InMontage == VictoryMontage || InMontage == DamagedMontage)
 	{
 		ChangeAIState(EAIState::Idle);
 	}
+}
+
+void APDCharacter::NotifyAttackEnd()
+{
 }
 
 void APDCharacter::ChangeAIState(EAIState InAIState)

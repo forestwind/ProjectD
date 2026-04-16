@@ -6,6 +6,8 @@
 #include "Character/PDCharacter.h"
 #include "PDMonsterCharacter.generated.h"
 
+DECLARE_DELEGATE(FAICharacterAttackFinished);
+
 /**
  * 
  */
@@ -14,4 +16,21 @@ class PROJECTD_API APDMonsterCharacter : public APDCharacter
 {
 	GENERATED_BODY()
 	
+public:
+	APDMonsterCharacter();
+
+	virtual void PostInitializeComponents() override;
+
+	// AI
+	float GetAIPatrolRadius();
+	float GetAIDetectRange();
+	float GetAIAttackRange();
+	float GetAITurnSpeed();
+
+	void SetAIAttackDelegate(const FAICharacterAttackFinished& InDelegate);
+	void AttackByAI();
+
+	virtual void NotifyAttackEnd() override;
+
+	FAICharacterAttackFinished OnAttackFinished;
 };

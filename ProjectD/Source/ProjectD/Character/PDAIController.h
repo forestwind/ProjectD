@@ -37,11 +37,24 @@ public:
 	void SetAIState(EAIState InNewState) { CurAIState = InNewState; }
 	EAIState GetAIState() const { return CurAIState; }
 
+	void RunAI();
+	void StopAI();
+
 protected:
 	void UpdateAIState();
 	void EnterAIState(EAIState InNewState);
 	void LeaveAIState(EAIState InNewState);
 
 protected:
+	virtual void OnPossess(APawn* InPawn) override;
+
+protected:
 	EAIState CurAIState;
+
+private:
+	UPROPERTY()
+	TObjectPtr<class UBlackboardData> BlackboardData;
+
+	UPROPERTY()
+	TObjectPtr<class UBehaviorTree> BehaviorTree;
 };
