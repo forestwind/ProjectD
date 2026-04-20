@@ -12,6 +12,7 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "../UI/Core/PDUIManagerSubsystem.h"
+#include "../Sound/PDSoundManagerSubsystem.h"
 
 void APDTitleGameMode::BeginPlay()
 {
@@ -19,6 +20,14 @@ void APDTitleGameMode::BeginPlay()
 
 	SetupTitleUI();
 	SetupEnhancedInput();
+
+	if (UGameInstance* GI = GetWorld()->GetGameInstance())
+	{
+		if (UPDSoundManagerSubsystem* SoundMgr = GI->GetSubsystem<UPDSoundManagerSubsystem>())
+		{
+			SoundMgr->PlayBGMTitle();
+		}
+	}
 }
 
 void APDTitleGameMode::SetupTitleUI()

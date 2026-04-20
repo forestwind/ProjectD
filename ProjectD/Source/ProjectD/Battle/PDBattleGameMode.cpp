@@ -175,6 +175,14 @@ void APDBattleGameMode::StartGame()
 	{
 		BattleMainWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		UpdateMonsterCount();
+
+		if (ModelManager)
+		{
+			if (APDCharacter* PlayerChar = ModelManager->FindCharacter(PlayerUnitGuid))
+			{
+				UpdatePlayerHP(PlayerChar->GetCurHP(), PlayerChar->GetMaxHP());
+			}
+		}
 	}
 
 }

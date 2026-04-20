@@ -141,6 +141,19 @@ void APDPlayerCharacter::HandleInventory()
 	}
 }
 
+float APDPlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+                                      AController* EventInstigator, AActor* DamageCauser)
+{
+	float Result = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	if (APDBattleGameMode* BattleGM = GetWorld()->GetAuthGameMode<APDBattleGameMode>())
+	{
+		BattleGM->UpdatePlayerHP(UnitInfo.CurHP, UnitInfo.MaxHP);
+	}
+
+	return Result;
+}
+
 void APDPlayerCharacter::ApplyCameraSettings()
 {
 	if (CameraBoom)

@@ -56,4 +56,8 @@ protected:
 	void HandleInventory();
 
 	void ApplyCameraSettings();
+
+public:
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+	                         AController* EventInstigator, AActor* DamageCauser) override;
 };

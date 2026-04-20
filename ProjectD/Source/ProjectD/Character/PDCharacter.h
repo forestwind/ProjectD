@@ -45,6 +45,8 @@ public:
 
 	void UpdateUIHpBar(float Value);
 	float GetHpPercent() const { return UnitInfo.GetHPPercent(); }
+	int32 GetCurHP() const { return UnitInfo.CurHP; }
+	int32 GetMaxHP() const { return UnitInfo.MaxHP; }
 
 	void Attack();
 	void CheckAttack();

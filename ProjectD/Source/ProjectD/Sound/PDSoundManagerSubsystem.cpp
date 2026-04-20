@@ -142,21 +142,20 @@ UPDSoundDataAsset* UPDSoundManagerSubsystem::GetSoundDataAsset()
 
 void UPDSoundManagerSubsystem::HandlePreLoadMap(const FString& MapName)
 {
-	if (BGMComponent && BGMComponent->IsRegistered())
+	if (BGMComponent)
 	{
-		BGMComponent->UnregisterComponent();
+		BGMComponent->Stop();
+		BGMComponent->DestroyComponent();
+		BGMComponent = nullptr;
 	}
 }
 
 void UPDSoundManagerSubsystem::HandlePostLoadMap(UWorld* LoadedWorld)
 {
-	if (!LoadedWorld || !BGMComponent)
+	if (!LoadedWorld)
 	{
 		return;
 	}
 
-	if (!BGMComponent->IsRegistered())
-	{
-		BGMComponent->RegisterComponentWithWorld(LoadedWorld);
-	}
+	EnsureBGMComponent();
 }
