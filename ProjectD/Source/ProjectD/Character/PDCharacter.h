@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AI/PDAI.h"
 #include "PDCharacter.generated.h"
 
 struct FPDUnitRow;
 class UPDTableManagerSubsystem;
 class UPDUnitDataAsset;
 class UPDHpBarWidgetComponent;
-enum class EAIState : uint8;
+
 
 class FUnitInfo
 {

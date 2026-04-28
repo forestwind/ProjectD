@@ -6,18 +6,7 @@
 #include "AIController.h"
 #include "PDAIController.generated.h"
 
-UENUM()
-enum class EAIState : uint8
-{
-	Ready,
-	Idle,
-	Move,
-	Attack,
-	Damage,
-	Die,
-	Victory,
-	Max
-};
+enum class EAIState : uint8;
 
 /**
  * 

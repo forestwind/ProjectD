@@ -105,6 +105,11 @@ void APDPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void APDPlayerCharacter::HandleMove(const FInputActionValue& Value)
 {
+	if(CurAIState == EAIState::Die)
+	{
+		return;
+	}
+
 	const FVector2D Axis = Value.Get<FVector2D>();
 	if (Axis.IsNearlyZero()) return;
 
@@ -130,6 +135,11 @@ void APDPlayerCharacter::HandleMove(const FInputActionValue& Value)
 
 void APDPlayerCharacter::HandleAttack()
 {
+	if (CurAIState == EAIState::Die)
+	{
+		return;
+	}
+
 	Attack();
 }
 
