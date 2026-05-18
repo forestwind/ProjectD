@@ -19,18 +19,25 @@ class PROJECTD_API UPDUIRootWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	/** 2D 일반 UI 패널 */
-	UCanvasPanel* GetPanel2D() const { return Panel2D; }
-
-	/** 항상 위에 오는 Overlay 패널 */
-	UCanvasPanel* GetPanelOverlay() const { return PanelOverlay; }
+	UCanvasPanel* GetPanelWorld()  const { return Panel_World; }
+	UCanvasPanel* GetPanelScreen() const { return Panel_Screen; }
+	UCanvasPanel* GetPanelWindow() const { return Panel_Window; }
+	UCanvasPanel* GetPanelPopup()  const { return Panel_Popup; }
+	UCanvasPanel* GetPanelSystem() const { return Panel_System; }
 
 protected:
-	/** 일반 UI용 패널 */
 	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* Panel2D;
+	UCanvasPanel* Panel_World;
 
-	/** 시스템 / 최상단 UI용 패널 */
 	UPROPERTY(meta = (BindWidget))
-	UCanvasPanel* PanelOverlay;
+	UCanvasPanel* Panel_Screen;
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* Panel_Window;
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* Panel_Popup;
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* Panel_System;
 };

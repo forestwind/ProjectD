@@ -29,10 +29,7 @@ protected:
 	void HandleTapInput(const FInputActionValue& Value);
 	void HandleStartRequestedFromWidget();
 
-	UPROPERTY(EditDefaultsOnly, Category = "Title")
-	TSubclassOf<UPDTitleMainWidget> TitleWidgetClass;
-
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UPDTitleMainWidget> TitleWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")

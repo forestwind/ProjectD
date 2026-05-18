@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "PDUIManagerSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "PDUIRootWidget.h"
@@ -9,21 +8,7 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Engine/World.h"
 #include "UObject/UObjectGlobals.h"
-
-namespace
-{
-	static void AddWidgetToCanvasAtPosition(UCanvasPanel* Panel, UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment)
-	{
-		UCanvasPanelSlot* Slot = Panel->AddChildToCanvas(Widget);
-		if (Slot)
-		{
-			Slot->SetAnchors(FAnchors(0.f, 0.f, 0.f, 0.f));
-			Slot->SetPosition(ScreenPosition);
-			Slot->SetAutoSize(true);
-			Slot->SetAlignment(Alignment);
-		}
-	}
-}
+#include "Table/PDTableManagerSubsystem.h"
 
 void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -58,7 +43,6 @@ void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		UE_LOG(LogTemp, Error, TEXT("[PD][UIManager] Failed to load RootUIClass."));
 	}
 
-	// 레벨 로드 후 콜백 등록
 	FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UPDUIManagerSubsystem::HandlePostLoadMap);
 }
 
@@ -91,12 +75,6 @@ void UPDUIManagerSubsystem::CreateRootUI(TSubclassOf<UPDUIRootWidget> RootWidget
 	}
 
 	RootUI = CreateWidget<UPDUIRootWidget>(GI, RootWidgetClass);
-	if (!RootUI)
-	{
-		return;
-	}
-
-	// AddToViewport는 뷰포트가 준비된 뒤 첫 사용 시(EnsureRootUIAddedToViewport)에 수행
 }
 
 void UPDUIManagerSubsystem::EnsureRootUIAddedToViewport()
@@ -121,28 +99,95 @@ void UPDUIManagerSubsystem::EnsureRootUIAddedToViewport()
 	bRootUIAddedToViewport = RootUI->IsInViewport();
 }
 
-void UPDUIManagerSubsystem::AddWidgetToPanel2D(UUserWidget* Widget)
+UCanvasPanel* UPDUIManagerSubsystem::GetPanelForLayer(EUILayer Layer) const
 {
-	if (!Widget)
-	{
-		return;
-	}
-
 	if (!RootUI)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidgetToPanel2D failed: RootUI is null. Widget=%s"), Widget ? *Widget->GetName() : TEXT("null"));
+		return nullptr;
+	}
+
+	switch (Layer)
+	{
+	case EUILayer::World:  return RootUI->GetPanelWorld();
+	case EUILayer::Screen: return RootUI->GetPanelScreen();
+	case EUILayer::Window: return RootUI->GetPanelWindow();
+	case EUILayer::Popup:  return RootUI->GetPanelPopup();
+	case EUILayer::System: return RootUI->GetPanelSystem();
+	default:               return nullptr;
+	}
+}
+
+UUserWidget* UPDUIManagerSubsystem::AddWidget(EUIType UIType)
+{
+	UGameInstance* GI = GetGameInstance();
+	UPDTableManagerSubsystem* TableMgr = GI ? GI->GetSubsystem<UPDTableManagerSubsystem>() : nullptr;
+	if (!TableMgr)
+	{
+		return nullptr;
+	}
+
+	const FPDUIBase* UIData = TableMgr->GetUIBase(UIType);
+	UClass* WidgetClass = TableMgr->GetWidgetClass(UIType);
+	if (!UIData || !WidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidget: UIBase or WidgetClass not found for UIType %d"), (int32)UIType);
+		return nullptr;
+	}
+
+	UUserWidget* Widget = CreateWidget<UUserWidget>(GI, WidgetClass);
+	if (!Widget)
+	{
+		return nullptr;
+	}
+
+	AddWidgetToLayer(Widget, UIData->UILayer);
+	return Widget;
+}
+
+UUserWidget* UPDUIManagerSubsystem::AddWidgetAtPosition(EUIType UIType, FVector2D ScreenPosition, FVector2D Alignment)
+{
+	UGameInstance* GI = GetGameInstance();
+	UPDTableManagerSubsystem* TableMgr = GI ? GI->GetSubsystem<UPDTableManagerSubsystem>() : nullptr;
+	if (!TableMgr)
+	{
+		return nullptr;
+	}
+
+	const FPDUIBase* UIData = TableMgr->GetUIBase(UIType);
+	UClass* WidgetClass = TableMgr->GetWidgetClass(UIType);
+	if (!UIData || !WidgetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidgetAtPosition: UIBase or WidgetClass not found for UIType %d"), (int32)UIType);
+		return nullptr;
+	}
+
+	UUserWidget* Widget = CreateWidget<UUserWidget>(GI, WidgetClass);
+	if (!Widget)
+	{
+		return nullptr;
+	}
+
+	AddWidgetToLayerAtPosition(Widget, UIData->UILayer, ScreenPosition, Alignment);
+	return Widget;
+}
+
+void UPDUIManagerSubsystem::AddWidgetToLayer(UUserWidget* Widget, EUILayer Layer)
+{
+	if (!Widget || !RootUI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidgetToLayer failed: Widget or RootUI is null."));
 		return;
 	}
 
 	EnsureRootUIAddedToViewport();
 
-	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
-	if (!Panel2D)
+	UCanvasPanel* Panel = GetPanelForLayer(Layer);
+	if (!Panel)
 	{
 		return;
 	}
 
-	UCanvasPanelSlot* Slot = Panel2D->AddChildToCanvas(Widget);
+	UCanvasPanelSlot* Slot = Panel->AddChildToCanvas(Widget);
 	if (Slot)
 	{
 		Slot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
@@ -150,124 +195,47 @@ void UPDUIManagerSubsystem::AddWidgetToPanel2D(UUserWidget* Widget)
 	}
 }
 
-void UPDUIManagerSubsystem::AddWidgetToPanelOverlay(UUserWidget* Widget)
+void UPDUIManagerSubsystem::AddWidgetToLayerAtPosition(UUserWidget* Widget, EUILayer Layer, FVector2D ScreenPosition, FVector2D Alignment)
+{
+	if (!Widget || !RootUI)
+	{
+		return;
+	}
+
+	EnsureRootUIAddedToViewport();
+
+	UCanvasPanel* Panel = GetPanelForLayer(Layer);
+	if (!Panel)
+	{
+		return;
+	}
+
+	UCanvasPanelSlot* Slot = Panel->AddChildToCanvas(Widget);
+	if (Slot)
+	{
+		Slot->SetAnchors(FAnchors(0.f, 0.f, 0.f, 0.f));
+		Slot->SetPosition(ScreenPosition);
+		Slot->SetAutoSize(true);
+		Slot->SetAlignment(Alignment);
+	}
+}
+
+void UPDUIManagerSubsystem::RemoveWidget(UUserWidget* Widget)
 {
 	if (!Widget)
 	{
 		return;
 	}
 
-	if (!RootUI)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] AddWidgetToPanelOverlay failed: RootUI is null. Widget=%s"), Widget ? *Widget->GetName() : TEXT("null"));
-		return;
-	}
-
-	EnsureRootUIAddedToViewport();
-
-	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
-	if (!PanelOverlay)
-	{
-		return;
-	}
-
-	UCanvasPanelSlot* Slot = PanelOverlay->AddChildToCanvas(Widget);
-	if (Slot)
-	{
-		Slot->SetAnchors(FAnchors(0.f, 0.f, 1.f, 1.f));
-		Slot->SetOffsets(FMargin(0.f));
-	}
+	Widget->RemoveFromParent();
 }
 
-void UPDUIManagerSubsystem::AddWidgetToPanel2DAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment)
+void UPDUIManagerSubsystem::ClearLayer(EUILayer Layer)
 {
-	if (!Widget || !RootUI)
+	UCanvasPanel* Panel = GetPanelForLayer(Layer);
+	if (Panel)
 	{
-		return;
-	}
-
-	EnsureRootUIAddedToViewport();
-
-	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
-	if (!Panel2D)
-	{
-		return;
-	}
-
-	AddWidgetToCanvasAtPosition(Panel2D, Widget, ScreenPosition, Alignment);
-}
-
-void UPDUIManagerSubsystem::AddWidgetToPanelOverlayAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment)
-{
-	if (!Widget || !RootUI)
-	{
-		return;
-	}
-
-	EnsureRootUIAddedToViewport();
-
-	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
-	if (!PanelOverlay)
-	{
-		return;
-	}
-
-	AddWidgetToCanvasAtPosition(PanelOverlay, Widget, ScreenPosition, Alignment);
-}
-
-void UPDUIManagerSubsystem::RemoveWidgetFromPanel2D(UUserWidget* Widget)
-{
-	if (!Widget || !RootUI)
-	{
-		return;
-	}
-
-	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
-	if (Panel2D && Widget->GetParent() == Panel2D)
-	{
-		Widget->RemoveFromParent();
-	}
-}
-
-void UPDUIManagerSubsystem::RemoveWidgetFromPanelOverlay(UUserWidget* Widget)
-{
-	if (!Widget || !RootUI)
-	{
-		return;
-	}
-
-	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
-	if (PanelOverlay && Widget->GetParent() == PanelOverlay)
-	{
-		Widget->RemoveFromParent();
-	}
-}
-
-void UPDUIManagerSubsystem::ClearPanel2D()
-{
-	if (!RootUI)
-	{
-		return;
-	}
-
-	UCanvasPanel* Panel2D = RootUI->GetPanel2D();
-	if (Panel2D)
-	{
-		Panel2D->ClearChildren();
-	}
-}
-
-void UPDUIManagerSubsystem::ClearPanelOverlay()
-{
-	if (!RootUI)
-	{
-		return;
-	}
-
-	UCanvasPanel* PanelOverlay = RootUI->GetPanelOverlay();
-	if (PanelOverlay)
-	{
-		PanelOverlay->ClearChildren();
+		Panel->ClearChildren();
 	}
 }
 
@@ -278,8 +246,5 @@ void UPDUIManagerSubsystem::HandlePostLoadMap(UWorld* LoadedWorld)
 		return;
 	}
 
-	// 레벨 전환 후 새 Viewport 기준으로 RootUI 재부착
 	EnsureRootUIAddedToViewport();
 }
-
-

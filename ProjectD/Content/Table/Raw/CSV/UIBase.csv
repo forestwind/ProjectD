@@ -1,0 +1,9 @@
+Name,UIType,UILayer,WidgetClassPath
+TitleMain,TitleMain,Screen,/Game/UI/Title/WBP_TitleMainWidget.WBP_TitleMainWidget_C
+BattleMain,BattleMain,Screen,/Game/UI/Battle/WBP_BattleMainUI.WBP_BattleMainUI_C
+BattleInventory,BattleInventory,Window,/Game/UI/Battle/WBP_BattleInventory.WBP_BattleInventory_C
+CharacterInfo,CharacterInfo,Window,/Game/UI/Battle/WBP_CharacterInfo.WBP_CharacterInfo_C
+BattleEnd,BattleEnd,Popup,/Game/UI/Battle/WBP_BattleEndUI.WBP_BattleEndUI_C
+BattlePhaseMsg,BattlePhaseMsg,Popup,/Game/UI/Battle/WBP_BattlePhaseMsg.WBP_BattlePhaseMsg_C
+BattleHpBar,BattleHpBar,World,/Game/UI/Battle/WBP_BattleHpBar.WBP_BattleHpBar_C
+BattleDamageNum,BattleDamageNum,Popup,/Game/UI/Battle/WBP_BattleDamageNum.WBP_BattleDamageNum_C

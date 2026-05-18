@@ -10,6 +10,7 @@
 #include "PDUnitLevelRow.h"
 #include "PDStageRow.h"
 #include "PDBattleItemRow.h"
+#include "PDUIBaseRow.h"
 #include "DataAsset/PDUnitDataAsset.h"
 #include "DataAsset/Stage/PDStageDataAsset.h"
 #include "PDTableManagerSubsystem.generated.h"
@@ -45,12 +46,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Item")
 	TObjectPtr<UDataTable> BattleItemDataTable;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|UI")
+	TObjectPtr<UDataTable> UIBaseDataTable;
+
 	// ID 기반 빠른 조회를 위한 캐시 맵 (Key: 각 Row의 ID)
 	TMap<int32, const FPDUnitRow*> UnitMap;
 	TMap<int32, const FPDUnitStatRow*> UnitStatMap;
 	TMap<int32, const FPDUnitLevelRow*> UnitLevelMap;
 	TMap<int32, const FPDStageRow*> StageMap;
 	TMap<int32, const FPDBattleItemRow*> BattleItemMap;
+	TMap<EUIType, const FPDUIBase*> UIBaseMap;
 
 	// DataTable을 맵으로 변환
 	void BuildUnitMap();
@@ -58,6 +63,7 @@ protected:
 	void BuildUnitLevelMap();
 	void BuildStageMap();
 	void BuildBattleItemMap();
+	void BuildUIBaseMap();
 
 	// DataAsset
 	// 로드된 Unit DataAsset 캐시 (GC 방지용)
@@ -84,6 +90,12 @@ public:
 	// Item ID로 배틀 아이템 데이터 조회
 	const FPDBattleItemRow* GetBattleItem(int32 ItemID) const;
 
+	// UIType으로 UI 데이터 조회
+	const FPDUIBase* GetUIBase(EUIType UIType) const;
+
+	// UIType에 해당하는 위젯 블루프린트 클래스 로드
+	UClass* GetWidgetClass(EUIType UIType) const;
+
 	// 유닛 BP 조회 — 첫 호출 시 DataAsset을 캐시에 로드
 	UClass* GetUnitBP(int32 InUnitID);
 
@@ -101,6 +113,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Table|Item")
 	UDataTable* GetBattleItemDataTable() const { return BattleItemDataTable; }
+
+	UFUNCTION(BlueprintCallable, Category = "Table|UI")
+	UDataTable* GetUIBaseDataTable() const { return UIBaseDataTable; }
 
 	// DataAsset 이름으로 유닛 DataAsset 로드 및 캐시 반환
 	UFUNCTION(BlueprintCallable, Category = "Table|DataAsset")

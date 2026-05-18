@@ -213,21 +213,17 @@ void APDBattleGameMode::ShowBattleEndUI()
 
 	if (BattleMainWidget)
 	{
-		UIManager->RemoveWidgetFromPanel2D(BattleMainWidget);
+		UIManager->RemoveWidget(BattleMainWidget);
 		BattleMainWidget = nullptr;
 	}
 
-	if (BattleEndWidgetClass)
+	BattleEndWidget = Cast<UPDUIBattleEndWidget>(UIManager->AddWidget(EUIType::BattleEnd));
+	if (BattleEndWidget)
 	{
-		BattleEndWidget = CreateWidget<UPDUIBattleEndWidget>(GI, BattleEndWidgetClass);
-		if (BattleEndWidget)
-		{
-			const FText ResultText = (RemainingEnemyCount == 0)
-				? FText::FromString(TEXT("Victory"))
-				: FText::FromString(TEXT("Defeat"));
-			BattleEndWidget->SetResultText(ResultText);
-			UIManager->AddWidgetToPanel2D(BattleEndWidget);
-		}
+		const FText ResultText = (RemainingEnemyCount == 0)
+			? FText::FromString(TEXT("Victory"))
+			: FText::FromString(TEXT("Defeat"));
+		BattleEndWidget->SetResultText(ResultText);
 	}
 }
 
@@ -240,28 +236,22 @@ void APDBattleGameMode::CreateUI()
 {
 	UGameInstance* GI = GetWorld()->GetGameInstance();
 	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
-
-	// 1) BattleMainWidget (미니맵 포함) 먼저 생성·추가 → 아래 레이어
-	if (UIManager && BattleMainWidgetClass)
+	if (!UIManager)
 	{
-		BattleMainWidget = CreateWidget<UPDUIBattleMainWidget>(GI, BattleMainWidgetClass);
-		if (BattleMainWidget)
-		{
-			UIManager->AddWidgetToPanel2D(BattleMainWidget);
-			BattleMainWidget->SetVisibility(ESlateVisibility::Collapsed);
-		}
+		return;
 	}
 
-	// 2) 인벤토리 위젯 그 다음 생성·추가 → 위 레이어 (미니맵보다 앞)
-	if (UIManager && BattleInventoryWidgetClass)
+	BattleMainWidget = Cast<UPDUIBattleMainWidget>(UIManager->AddWidget(EUIType::BattleMain));
+	if (BattleMainWidget)
 	{
-		BattleInventoryWidget = CreateWidget<UPDUIBattleInventoryWidget>(GI, BattleInventoryWidgetClass);
-		if (BattleInventoryWidget)
-		{
-			UIManager->AddWidgetToPanel2D(BattleInventoryWidget);
-			BattleInventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
-			bInventoryVisible = false;
-		}
+		BattleMainWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
+
+	BattleInventoryWidget = Cast<UPDUIBattleInventoryWidget>(UIManager->AddWidget(EUIType::BattleInventory));
+	if (BattleInventoryWidget)
+	{
+		BattleInventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
+		bInventoryVisible = false;
 	}
 }
 
@@ -319,30 +309,17 @@ void APDBattleGameMode::SpawnStageUnit()
 void APDBattleGameMode::ShowPhaseMessage(const FText& InText)
 {
 	UGameInstance* GI = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
-	if (!GI)
-	{
-		return;
-	}
-	
-	UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>();
+	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
 	if (!UIManager)
 	{
 		return;
 	}
-	
-	// 위젯 생성(처음 1회)
-	if (!PhaseMsgWidget && PhaseMsgWidgetClass)
+
+	PhaseMsgWidget = Cast<UPDUIBattlePhaseMsgWidget>(UIManager->AddWidget(EUIType::BattlePhaseMsg));
+	if (PhaseMsgWidget)
 	{
-		PhaseMsgWidget = CreateWidget<UPDUIBattlePhaseMsgWidget>(GI, PhaseMsgWidgetClass);
+		PhaseMsgWidget->SetPhaseText(InText);
 	}
-	if (!PhaseMsgWidget)
-	{
-		return;
-	}
-	
-	PhaseMsgWidget->SetPhaseText(InText);
-	UIManager->AddWidgetToPanelOverlay(PhaseMsgWidget);
-	
 }
 
 void APDBattleGameMode::HidePhaseMessage()
@@ -351,7 +328,7 @@ void APDBattleGameMode::HidePhaseMessage()
 	{
 		if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 		{
-			UIManager->RemoveWidgetFromPanelOverlay(PhaseMsgWidget);
+			UIManager->RemoveWidget(PhaseMsgWidget);
 		}
 	}
 }
@@ -365,7 +342,7 @@ void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
 		{
 			if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 			{
-				UIManager->RemoveWidgetFromPanelOverlay(PhaseMsgWidget);
+				UIManager->RemoveWidget(PhaseMsgWidget);
 				ShowPhaseMessage(FText::FromString(TEXT("READY")));
 			}
 		}
@@ -377,7 +354,7 @@ void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
 		{
 			if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 			{
-				UIManager->RemoveWidgetFromPanelOverlay(PhaseMsgWidget);
+				UIManager->RemoveWidget(PhaseMsgWidget);
 				ShowPhaseMessage(FText::FromString(TEXT("START")));
 			}
 		}

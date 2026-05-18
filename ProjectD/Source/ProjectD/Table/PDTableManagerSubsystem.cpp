@@ -3,6 +3,7 @@
 #include "PDTableManagerSubsystem.h"
 #include "Engine/DataTable.h"
 #include "Misc/PackageName.h"
+#include "Blueprint/UserWidget.h"
 
 namespace
 {
@@ -119,6 +120,7 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UnitLevelDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UnitLevel"));
 	StageDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Stage"));
 	BattleItemDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_BattleItem"));
+	UIBaseDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UIBase"));
 
 	// DataTable을 맵으로 변환 (RowName 의존 제거)
 	BuildUnitMap();
@@ -126,6 +128,7 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	BuildUnitLevelMap();
 	BuildStageMap();
 	BuildBattleItemMap();
+	BuildUIBaseMap();
 }
 
 void UPDTableManagerSubsystem::Deinitialize()
@@ -137,12 +140,14 @@ void UPDTableManagerSubsystem::Deinitialize()
 	UnitLevelMap.Empty();
 	StageMap.Empty();
 	BattleItemMap.Empty();
+	UIBaseMap.Empty();
 
 	UnitDataTable = nullptr;
 	UnitStatDataTable = nullptr;
 	UnitLevelDataTable = nullptr;
 	StageDataTable = nullptr;
 	BattleItemDataTable = nullptr;
+	UIBaseDataTable = nullptr;
 	Super::Deinitialize();
 }
 
@@ -189,6 +194,35 @@ void UPDTableManagerSubsystem::BuildBattleItemMap()
 		BattleItemMap,
 		TEXT("BattleItem"),
 		TEXT("UPDTableManagerSubsystem::BuildBattleItemMap"));
+}
+
+void UPDTableManagerSubsystem::BuildUIBaseMap()
+{
+	UIBaseMap.Empty();
+
+	if (!UIBaseDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] UIBaseDataTable is null!"));
+		return;
+	}
+
+	TArray<FPDUIBase*> AllRows;
+	UIBaseDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildUIBaseMap"), AllRows);
+
+	for (const FPDUIBase* Row : AllRows)
+	{
+		if (!Row || Row->UIType == EUIType::None)
+		{
+			continue;
+		}
+		if (UIBaseMap.Contains(Row->UIType))
+		{
+			continue;
+		}
+		UIBaseMap.Add(Row->UIType, Row);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] UIBaseMap built. Total entries: %d"), UIBaseMap.Num());
 }
 
 const FPDUnitRow* UPDTableManagerSubsystem::GetUnit(int32 UnitID) const
@@ -239,6 +273,26 @@ const FPDBattleItemRow* UPDTableManagerSubsystem::GetBattleItem(int32 ItemID) co
 	}
 	const FPDBattleItemRow* const* FoundRow = BattleItemMap.Find(ItemID);
 	return FoundRow ? *FoundRow : nullptr;
+}
+
+const FPDUIBase* UPDTableManagerSubsystem::GetUIBase(EUIType UIType) const
+{
+	if (UIType == EUIType::None)
+	{
+		return nullptr;
+	}
+	const FPDUIBase* const* Found = UIBaseMap.Find(UIType);
+	return Found ? *Found : nullptr;
+}
+
+UClass* UPDTableManagerSubsystem::GetWidgetClass(EUIType InUIType) const
+{
+	const FPDUIBase* Row = GetUIBase(InUIType);
+	if (!Row || Row->WidgetClassPath.IsEmpty())
+	{
+		return nullptr;
+	}
+	return StaticLoadClass(UUserWidget::StaticClass(), nullptr, *Row->WidgetClassPath);
 }
 
 UClass* UPDTableManagerSubsystem::GetUnitBP(int32 InUnitID)

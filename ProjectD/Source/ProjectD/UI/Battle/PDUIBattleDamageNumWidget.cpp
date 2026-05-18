@@ -68,6 +68,6 @@ void UPDUIBattleDamageNumWidget::NativeTick(const FGeometry& AllottedGeometry, f
 			return;
 		}
 
-		UIManager->RemoveWidgetFromPanelOverlay(this);
+		UIManager->RemoveWidget(this);
 	}
 }

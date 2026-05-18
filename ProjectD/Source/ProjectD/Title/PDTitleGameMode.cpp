@@ -12,6 +12,7 @@
 #include "InputMappingContext.h"
 #include "InputAction.h"
 #include "../UI/Core/PDUIManagerSubsystem.h"
+#include "PDDefine.h"
 #include "../Sound/PDSoundManagerSubsystem.h"
 
 void APDTitleGameMode::BeginPlay()
@@ -33,7 +34,7 @@ void APDTitleGameMode::BeginPlay()
 void APDTitleGameMode::SetupTitleUI()
 {
 	UWorld* World = GetWorld();
-	if (!World || !TitleWidgetClass)
+	if (!World)
 	{
 		return;
 	}
@@ -49,14 +50,12 @@ void APDTitleGameMode::SetupTitleUI()
 
 	PC->bShowMouseCursor = true;
 	PC->SetInputMode(FInputModeGameAndUI());
-	
-	// 기존 패널 ui 제거
-	UIManager->ClearPanel2D();
 
-	TitleWidget = CreateWidget<UPDTitleMainWidget>(GI, TitleWidgetClass);
+	UIManager->ClearLayer(EUILayer::Screen);
+
+	TitleWidget = Cast<UPDTitleMainWidget>(UIManager->AddWidget(EUIType::TitleMain));
 	if (TitleWidget)
 	{
-		UIManager->AddWidgetToPanel2D(TitleWidget);
 		TitleWidget->OnStartRequested.AddUObject(this, &APDTitleGameMode::HandleStartRequestedFromWidget);
 	}
 }
@@ -90,8 +89,8 @@ void APDTitleGameMode::StartBattleLevel()
 	{
 		if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 		{
-			UIManager->ClearPanel2D();
-			UIManager->ClearPanelOverlay();
+			UIManager->ClearLayer(EUILayer::Screen);
+			UIManager->ClearLayer(EUILayer::Popup);
 		}
 	}
 

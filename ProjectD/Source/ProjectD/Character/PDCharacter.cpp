@@ -376,32 +376,10 @@ void APDCharacter::TakeDamageInternal(const float InDamage)
 
 void APDCharacter::ShowUIDamageNum(float InDamage)
 {
-	APDBattleGameMode* BattleGM = GetWorld()->GetAuthGameMode<APDBattleGameMode>();
-	if (!BattleGM)
-	{
-		return;
-	}
-
-	TSubclassOf<UPDUIBattleDamageNumWidget> WidgetClass = BattleGM->GetDamageNumWidgetClass();
-	if (!WidgetClass)
-	{
-		return;
-	}
-
 	UGameInstance* GI = GetGameInstance();
-	if (!GI)
-	{
-		return;
-	}
-
-	UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>();
-	if (!UIManager)
-	{
-		return;
-	}
-
+	UPDUIManagerSubsystem* UIManager = GI ? GI->GetSubsystem<UPDUIManagerSubsystem>() : nullptr;
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
-	if (!PC)
+	if (!UIManager || !PC)
 	{
 		return;
 	}
@@ -414,12 +392,11 @@ void APDCharacter::ShowUIDamageNum(float InDamage)
 		return;
 	}
 
-	UPDUIBattleDamageNumWidget* Widget = CreateWidget<UPDUIBattleDamageNumWidget>(GI, WidgetClass);
-	if (!Widget)
+	UPDUIBattleDamageNumWidget* Widget = Cast<UPDUIBattleDamageNumWidget>(
+		UIManager->AddWidgetAtPosition(EUIType::BattleDamageNum, WidgetPos, FVector2D(0.5f, 1.0f))
+	);
+	if (Widget)
 	{
-		return;
+		Widget->ShowDamage(InDamage);
 	}
-	
-	UIManager->AddWidgetToPanelOverlayAtPosition(Widget, WidgetPos, FVector2D(0.5f, 1.0f));
-	Widget->ShowDamage(InDamage);
 }

@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "PDDefine.h"
 #include "PDUIManagerSubsystem.generated.h"
 
 class UUserWidget;
+class UCanvasPanel;
 class UPDUIRootWidget;
-/**
- * 
- */
+
 UCLASS()
 class PROJECTD_API UPDUIManagerSubsystem : public UGameInstanceSubsystem
 {
@@ -23,37 +23,32 @@ public:
 public:
 	UPDUIRootWidget* GetRootUI() const { return RootUI; }
 
-	/** 일반 UI 추가 */
-	void AddWidgetToPanel2D(UUserWidget* Widget);
+	/** UIType으로 테이블 조회 → 위젯 생성 → 해당 레이어에 전체화면으로 추가 → 반환 */
+	UUserWidget* AddWidget(EUIType UIType);
 
-	/** 일반 UI 추가 - 스크린 좌표 지정 */
-	void AddWidgetToPanel2DAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment = FVector2D(0.f, 0.f));
+	/** UIType으로 테이블 조회 → 위젯 생성 → 해당 레이어의 스크린 좌표에 추가 → 반환 */
+	UUserWidget* AddWidgetAtPosition(EUIType UIType, FVector2D ScreenPosition, FVector2D Alignment = FVector2D::ZeroVector);
 
-	/** 최상단 UI 추가 */
-	void AddWidgetToPanelOverlay(UUserWidget* Widget);
+	/** 위젯을 현재 부모에서 제거 */
+	void RemoveWidget(UUserWidget* Widget);
 
-	/** 최상단 UI 추가 - 스크린 좌표 지정 */
-	void AddWidgetToPanelOverlayAtPosition(UUserWidget* Widget, FVector2D ScreenPosition, FVector2D Alignment = FVector2D(0.f, 0.f));
-
-	void RemoveWidgetFromPanel2D(UUserWidget* Widget);
-	void RemoveWidgetFromPanelOverlay(UUserWidget* Widget);
-
-	void ClearPanel2D();
-	void ClearPanelOverlay();
+	/** 지정 레이어의 모든 위젯 제거 */
+	void ClearLayer(EUILayer Layer);
 
 protected:
-	/** 생성된 Root UI 인스턴스 */
 	UPROPERTY()
 	UPDUIRootWidget* RootUI = nullptr;
 
 private:
+	UCanvasPanel* GetPanelForLayer(EUILayer Layer) const;
+
 	void CreateRootUI(TSubclassOf<UPDUIRootWidget> RootWidgetClass);
-	/** 뷰포트 준비 시점까지 미룬 AddToViewport (첫 사용 시 1회 호출) */
 	void EnsureRootUIAddedToViewport();
+	void HandlePostLoadMap(UWorld* LoadedWorld);
+
+	void AddWidgetToLayer(UUserWidget* Widget, EUILayer Layer);
+	void AddWidgetToLayerAtPosition(UUserWidget* Widget, EUILayer Layer, FVector2D ScreenPosition, FVector2D Alignment);
 
 private:
-	// RootUI를 Viewport에 붙였는지
 	bool bRootUIAddedToViewport = false;
-
-	void HandlePostLoadMap(UWorld* LoadedWorld);
 };

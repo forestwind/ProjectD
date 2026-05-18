@@ -19,7 +19,6 @@ enum class EGameState : uint8
 class UPDUIBattleMainWidget;
 class UPDUIBattleEndWidget;
 class UPDUIBattlePhaseMsgWidget;
-class UPDUIBattleDamageNumWidget;
 class UPDUIBattleInventoryWidget;
 
 /**
@@ -47,8 +46,6 @@ public:
 	void UpdateMonsterCount();
 
 	void ToggleBattleInventory();
-
-	TSubclassOf<UPDUIBattleDamageNumWidget> GetDamageNumWidgetClass() const { return DamageNumWidgetClass; }
 
 	UPDBattleInventory* GetBattleInventory() const { return BattleInventory; }
 
@@ -91,21 +88,6 @@ protected:
 	// READY/START 메시지
 	UPROPERTY(transient)
 	TObjectPtr<UPDUIBattlePhaseMsgWidget> PhaseMsgWidget;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
-	TSubclassOf<UPDUIBattleMainWidget> BattleMainWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
-	TSubclassOf<UPDUIBattleEndWidget> BattleEndWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
-	TSubclassOf<UPDUIBattlePhaseMsgWidget> PhaseMsgWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
-	TSubclassOf<UPDUIBattleDamageNumWidget> DamageNumWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI")
-	TSubclassOf<UPDUIBattleInventoryWidget> BattleInventoryWidgetClass;
 
 	// Ready Text 표시 시간
 	UPROPERTY(EditDefaultsOnly, Category = "Battle|UI", meta = (ClampMin = "0.0"))
