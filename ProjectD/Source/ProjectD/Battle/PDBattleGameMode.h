@@ -13,6 +13,8 @@ enum class EGameState : uint8
 	Ready,
 	Play,
 	End,
+	Victory,
+	Defeat,
 	Max
 };
 
@@ -35,7 +37,7 @@ public:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-
+	 
 	virtual void RestartPlayer(AController* NewPlayer) override;
 
 	void SetPlayerUnitGuid(const FGuid& InUnitGuid);
@@ -58,7 +60,8 @@ protected:
 	void ChangeGameState(const EGameState InGameState);
 	void ReadyGame();
 	void StartGame();
-	void EndGame();
+	void VictoryGame();
+	void DefeatGame();
 
 	void StartStage(const int32 InStageID);
 	void SpawnStageUnit();

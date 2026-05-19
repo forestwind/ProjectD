@@ -85,7 +85,7 @@ void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 	if (InUnitGuid == PlayerUnitGuid)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][DespawnUnit] Player Unit Died!!"));
-		EndGame();
+		DefeatGame();
 	}
 	else
 	{
@@ -94,7 +94,7 @@ void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 		if (RemainingEnemyCount == 0)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][DespawnUnit] All Monster Died!!"));
-			EndGame();
+			VictoryGame();
 		}
 	}
 }
@@ -213,11 +213,19 @@ void APDBattleGameMode::StartGame()
 
 }
 
-void APDBattleGameMode::EndGame()
+void APDBattleGameMode::VictoryGame()
 {
-	ChangeGameState(EGameState::End);
-	
+	ChangeGameState(EGameState::Victory);
+
 	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][EndGame] Game Clear!!"));
+	ShowBattleEndUI();
+}
+
+void APDBattleGameMode::DefeatGame()
+{
+	ChangeGameState(EGameState::Defeat);
+
+	UE_LOG(LogTemp, Warning, TEXT("[PD][BattleGameMode][EndGame] Game Defeat!!"));
 	ShowBattleEndUI();
 }
 
@@ -246,7 +254,7 @@ void APDBattleGameMode::ShowBattleEndUI()
 	BattleEndWidget = Cast<UPDUIBattleEndWidget>(UIManager->AddWidget(EUIType::BattleEnd));
 	if (BattleEndWidget)
 	{
-		const FText ResultText = (RemainingEnemyCount == 0)
+		const FText ResultText = (GameStateType == EGameState::Victory)
 			? FText::FromString(TEXT("Victory"))
 			: FText::FromString(TEXT("Defeat"));
 		BattleEndWidget->SetResultText(ResultText);

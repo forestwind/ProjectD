@@ -3,7 +3,6 @@
 
 #include "PDCharacter.h"
 #include "UI/Battle/PDHpBarWidgetComponent.h"
-#include "PDAIController.h"
 #include "Engine/GameInstance.h"
 #include "Table/PDTableManagerSubsystem.h"
 #include "DataAsset/PDUnitDataAsset.h"
@@ -28,7 +27,6 @@ APDCharacter::APDCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
-	//AIControllerClass = APDAIController::StaticClass();
 	UnitAsset = nullptr;
 	IdleMontage = nullptr;
 	AttackMontage = nullptr;
@@ -276,8 +274,7 @@ void APDCharacter::ChangeAnimation(EAIState InAIState)
 	{
 		PlayMontage = DieMontage;
 		bBindDelegate = true;
-		SetActorEnableCollision(false);
-		AnimInstance->StopAllMontages(0.0f);
+		SetDeath();
 	}
 	break;
 	case EAIState::Victory:
@@ -323,6 +320,7 @@ void APDCharacter::AnimationEnd(UAnimMontage* InMontage, bool bInterrupted)
 		{
 			BattleGameMode->DespawnUnit(UnitGuid);
 		}
+		HpBarWidgetComponent->SetHiddenInGame(true);
 	}
 	else if (InMontage == AttackMontage)
 	{
@@ -343,13 +341,21 @@ void APDCharacter::NotifyAttackEnd()
 {
 }
 
+void APDCharacter::SetDeath()
+{
+	UAnimInstance* AnimInstance = GetMesh() == nullptr ? nullptr : GetMesh()->GetAnimInstance();
+	if (AnimInstance == nullptr)
+	{
+		return;
+	}
+
+	SetActorEnableCollision(false);
+	AnimInstance->StopAllMontages(0.0f);
+}
+
 void APDCharacter::ChangeAIState(EAIState InAIState)
 {
 	ChangeAnimation(InAIState);
-	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
-	{
-		PDAIController->ChangeAIState(InAIState);
-	}
 }
 
 void APDCharacter::TakeDamageInternal(const float InDamage)

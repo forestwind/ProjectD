@@ -51,3 +51,23 @@ void APDMonsterCharacter::NotifyAttackEnd()
 	Super::NotifyAttackEnd();
 	OnAttackFinished.ExecuteIfBound();
 }
+
+void APDMonsterCharacter::SetDeath()
+{
+	Super::SetDeath();
+
+	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
+	{
+		PDAIController->StopAI();
+	}
+}
+
+void APDMonsterCharacter::ChangeAIState(EAIState InAIState)
+{
+	Super::ChangeAIState(InAIState);
+
+	if (APDAIController* PDAIController = Cast<APDAIController>(GetController()))
+	{
+		PDAIController->ChangeAIState(InAIState);
+	}
+}

@@ -30,7 +30,11 @@ public:
 	void SetAIAttackDelegate(const FAICharacterAttackFinished& InDelegate);
 	void AttackByAI();
 
+protected:
 	virtual void NotifyAttackEnd() override;
+	virtual void SetDeath() override;
+	virtual void ChangeAIState(EAIState InAIState) override;
+
 
 	FAICharacterAttackFinished OnAttackFinished;
 };
