@@ -9,6 +9,7 @@
 
 class UScrollBox;
 class UWrapBox;
+class UButton;
 class UPDUIBattleInventoryScrollItemWidget;
 
 /**
@@ -29,6 +30,13 @@ public:
 	void ClearItems();
 
 protected:
+	virtual void NativeConstruct() override;
+
+private:
+	UFUNCTION()
+	void OnCloseButtonClicked();
+
+protected:
 	/** 스크롤 영역 (디자이너에서 동일 이름으로 배치). */
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UScrollBox> ItemListScroll;
@@ -36,6 +44,9 @@ protected:
 	/** ItemListScroll 의 직계 자식 WrapBox — 아이템을 가로로 배치하다 넘치면 줄바꿈. */
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UWrapBox> ItemWrapBox;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UButton> CloseButton;
 
 	/** BP에서 지정할 행 위젯 클래스. */
 	UPROPERTY(EditDefaultsOnly, Category = "UI")

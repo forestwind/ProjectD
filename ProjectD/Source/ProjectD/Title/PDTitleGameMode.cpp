@@ -89,8 +89,7 @@ void APDTitleGameMode::StartBattleLevel()
 	{
 		if (UPDUIManagerSubsystem* UIManager = GI->GetSubsystem<UPDUIManagerSubsystem>())
 		{
-			UIManager->ClearLayer(EUILayer::Screen);
-			UIManager->ClearLayer(EUILayer::Popup);
+			UIManager->ClearAllLayers();
 		}
 	}
 

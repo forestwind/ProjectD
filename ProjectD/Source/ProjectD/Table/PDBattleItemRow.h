@@ -33,4 +33,8 @@ struct PROJECTD_API FPDBattleItemRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BattleItem")
 	int32 MaxStack = 99;
+
+	/** DT_Image의 ImageName과 매칭되는 이미지 식별자 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "BattleItem")
+	FName ImageName;
 };

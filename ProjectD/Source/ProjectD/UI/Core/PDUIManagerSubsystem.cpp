@@ -49,6 +49,8 @@ void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 void UPDUIManagerSubsystem::Deinitialize()
 {
 	bRootUIAddedToViewport = false;
+	ActiveWidgets.Empty();
+	OnWidgetRemoved.Clear();
 
 	if (RootUI)
 	{
@@ -134,6 +136,12 @@ UUserWidget* UPDUIManagerSubsystem::AddWidget(EUIType UIType)
 		return nullptr;
 	}
 
+	// Screen 레이어가 열릴 때 Window 레이어 위젯 전체 닫기
+	if (UIData->UILayer == EUILayer::Screen)
+	{
+		CloseLayerInternal(EUILayer::Window);
+	}
+
 	UUserWidget* Widget = CreateWidget<UUserWidget>(GI, WidgetClass);
 	if (!Widget)
 	{
@@ -141,6 +149,7 @@ UUserWidget* UPDUIManagerSubsystem::AddWidget(EUIType UIType)
 	}
 
 	AddWidgetToLayer(Widget, UIData->UILayer);
+	ActiveWidgets.Add(UIType, Widget);
 	return Widget;
 }
 
@@ -168,6 +177,7 @@ UUserWidget* UPDUIManagerSubsystem::AddWidgetAtPosition(EUIType UIType, FVector2
 	}
 
 	AddWidgetToLayerAtPosition(Widget, UIData->UILayer, ScreenPosition, Alignment);
+	ActiveWidgets.Add(UIType, Widget);
 	return Widget;
 }
 
@@ -227,15 +237,62 @@ void UPDUIManagerSubsystem::RemoveWidget(UUserWidget* Widget)
 		return;
 	}
 
+	// ActiveWidgets에서 역방향 조회 후 제거 및 브로드캐스트
+	for (auto It = ActiveWidgets.CreateIterator(); It; ++It)
+	{
+		if (It->Value == Widget)
+		{
+			EUIType RemovedType = It->Key;
+			It.RemoveCurrent();
+			Widget->RemoveFromParent();
+			OnWidgetRemoved.Broadcast(RemovedType);
+			return;
+		}
+	}
+
 	Widget->RemoveFromParent();
 }
 
 void UPDUIManagerSubsystem::ClearLayer(EUILayer Layer)
 {
-	UCanvasPanel* Panel = GetPanelForLayer(Layer);
-	if (Panel)
+	CloseLayerInternal(Layer);
+}
+
+void UPDUIManagerSubsystem::ClearAllLayers()
+{
+	for (EUILayer Layer : { EUILayer::World, EUILayer::Screen, EUILayer::Window, EUILayer::Popup, EUILayer::System })
+	{
+		CloseLayerInternal(Layer);
+	}
+}
+
+void UPDUIManagerSubsystem::CloseLayerInternal(EUILayer Layer)
+{
+	UGameInstance* GI = GetGameInstance();
+	UPDTableManagerSubsystem* TableMgr = GI ? GI->GetSubsystem<UPDTableManagerSubsystem>() : nullptr;
+
+	// 해당 레이어에 속하는 EUIType 수집
+	TArray<EUIType> ClosedTypes;
+	for (auto& Pair : ActiveWidgets)
+	{
+		const FPDUIBase* UIData = TableMgr ? TableMgr->GetUIBase(Pair.Key) : nullptr;
+		if (UIData && UIData->UILayer == Layer)
+		{
+			ClosedTypes.Add(Pair.Key);
+		}
+	}
+
+	// 캔버스 패널 정리
+	if (UCanvasPanel* Panel = GetPanelForLayer(Layer))
 	{
 		Panel->ClearChildren();
+	}
+
+	// 맵에서 제거 후 브로드캐스트
+	for (EUIType Type : ClosedTypes)
+	{
+		ActiveWidgets.Remove(Type);
+		OnWidgetRemoved.Broadcast(Type);
 	}
 }
 

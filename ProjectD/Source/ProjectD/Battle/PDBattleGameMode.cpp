@@ -10,6 +10,7 @@
 #include "UI/Battle/PDUIBattleInventoryWidget.h"
 #include "Manager/ModelManager.h"
 #include "Battle/PDBattleSpawnActor.h"
+#include "Battle/PDBattleItemActor.h"
 #include "Character/PDCharacter.h"
 #include "UI/Core/PDUIManagerSubsystem.h"
 #include "Table/PDTableManagerSubsystem.h"
@@ -100,9 +101,34 @@ void APDBattleGameMode::DespawnUnit(const FGuid& InUnitGuid)
 
 void APDBattleGameMode::DespawnItem(const FGuid& InItemGuid)
 {
-	if (ModelManager)
+	if (!ModelManager)
 	{
-		ModelManager->DespawnBattleItem(InItemGuid);
+		return;
+	}
+
+	if (BattleInventory)
+	{
+		if (APDBattleItemActor* ItemActor = ModelManager->FindBattleItem(InItemGuid))
+		{
+			BattleInventory->AddItem(ItemActor->GetItemID(), 1);
+		}
+	}
+
+	ModelManager->DespawnBattleItem(InItemGuid);
+	RefreshInventoryUI();
+}
+
+void APDBattleGameMode::RefreshInventoryUI()
+{
+	if (!bInventoryVisible || !BattleInventoryWidget || !BattleInventory)
+	{
+		return;
+	}
+
+	BattleInventoryWidget->ClearItems();
+	for (const FPDBattleInventorySlot& Slot : BattleInventory->GetSlots())
+	{
+		BattleInventoryWidget->AddItem(Slot);
 	}
 }
 
@@ -253,6 +279,8 @@ void APDBattleGameMode::CreateUI()
 		BattleInventoryWidget->SetVisibility(ESlateVisibility::Collapsed);
 		bInventoryVisible = false;
 	}
+
+	UIManager->OnWidgetRemoved.AddUObject(this, &APDBattleGameMode::HandleWidgetRemoved);
 }
 
 void APDBattleGameMode::SpawnStageUnit()
@@ -376,6 +404,15 @@ void APDBattleGameMode::ShowUIPhaseMessage(EGameState state)
 	}
 }
 
+void APDBattleGameMode::HandleWidgetRemoved(EUIType RemovedType)
+{
+	if (RemovedType == EUIType::BattleInventory)
+	{
+		BattleInventoryWidget = nullptr;
+		bInventoryVisible = false;
+	}
+}
+
 void APDBattleGameMode::ToggleBattleInventory()
 {
 	if (!BattleInventoryWidget)
@@ -395,4 +432,17 @@ void APDBattleGameMode::ToggleBattleInventory()
 	}
 
 	BattleInventoryWidget->SetVisibility(bInventoryVisible ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		PC->bShowMouseCursor = bInventoryVisible;
+		if (bInventoryVisible)
+		{
+			PC->SetInputMode(FInputModeGameAndUI());
+		}
+		else
+		{
+			PC->SetInputMode(FInputModeGameOnly());
+		}
+	}
 }

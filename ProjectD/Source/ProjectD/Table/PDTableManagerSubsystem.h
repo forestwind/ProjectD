@@ -11,6 +11,7 @@
 #include "PDStageRow.h"
 #include "PDBattleItemRow.h"
 #include "PDUIBaseRow.h"
+#include "PDImageRow.h"
 #include "DataAsset/PDUnitDataAsset.h"
 #include "DataAsset/Stage/PDStageDataAsset.h"
 #include "PDTableManagerSubsystem.generated.h"
@@ -49,6 +50,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|UI")
 	TObjectPtr<UDataTable> UIBaseDataTable;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Table|Image")
+	TObjectPtr<UDataTable> ImageDataTable;
+
 	// ID 기반 빠른 조회를 위한 캐시 맵 (Key: 각 Row의 ID)
 	TMap<int32, const FPDUnitRow*> UnitMap;
 	TMap<int32, const FPDUnitStatRow*> UnitStatMap;
@@ -56,6 +60,7 @@ protected:
 	TMap<int32, const FPDStageRow*> StageMap;
 	TMap<int32, const FPDBattleItemRow*> BattleItemMap;
 	TMap<EUIType, const FPDUIBase*> UIBaseMap;
+	TMap<FName, const FPDImageRow*> ImageMap;
 
 	// DataTable을 맵으로 변환
 	void BuildUnitMap();
@@ -64,6 +69,11 @@ protected:
 	void BuildStageMap();
 	void BuildBattleItemMap();
 	void BuildUIBaseMap();
+	void BuildImageMap();
+
+	// 로드된 텍스처 캐시 (GC 방지용)
+	UPROPERTY(Transient)
+	TMap<FName, TObjectPtr<UTexture2D>> ImageTextureCache;
 
 	// DataAsset
 	// 로드된 Unit DataAsset 캐시 (GC 방지용)
@@ -123,4 +133,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Table|DataAsset")
 	UPDStageDataAsset* GetStageDataAssetByName(const FString& AssetName, bool bForceReload = false);
+
+	/** ImageName으로 텍스처 조회. 첫 호출 시 로드 후 캐시. */
+	UFUNCTION(BlueprintCallable, Category = "Table|Image")
+	UTexture2D* GetImage(FName ImageName);
 };

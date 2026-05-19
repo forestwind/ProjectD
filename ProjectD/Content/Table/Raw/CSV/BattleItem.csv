@@ -1,3 +1,3 @@
-Name,ID,ItemName,EffectType,EffectValue,MaxStack
-1,1,HP_Potion_Small,HP_Up,30,10
-2,2,Attack_Potion_Small,Attack_Up,10,5
+Name,ID,ItemName,EffectType,EffectValue,MaxStack,ImageName
+1,1,HP_Potion_Small,HP_Up,30,10,Item_HP_Potion
+2,2,Attack_Potion_Small,Attack_Up,10,5,Item_ATK_UP_Potion

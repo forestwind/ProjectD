@@ -47,6 +47,11 @@ public:
 
 	void ToggleBattleInventory();
 
+	void HandleWidgetRemoved(EUIType RemovedType);
+
+private:
+	void RefreshInventoryUI();
+
 	UPDBattleInventory* GetBattleInventory() const { return BattleInventory; }
 
 protected:

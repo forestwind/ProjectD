@@ -9,6 +9,7 @@
 
 class UImage;
 class UTextBlock;
+class UPDTableManagerSubsystem;
 
 /**
  * 인벤토리 스크롤 목록의 행 하나. BP에서 위젯 이름을 맞춰야 바인딩됩니다.

@@ -4,6 +4,8 @@
 #include "Engine/DataTable.h"
 #include "Misc/PackageName.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/Texture2D.h"
+#include "PDGameInstance.h"
 
 namespace
 {
@@ -121,6 +123,7 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	StageDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Stage"));
 	BattleItemDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_BattleItem"));
 	UIBaseDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_UIBase"));
+	ImageDataTable = LoadObject<UDataTable>(nullptr, TEXT("/Game/Table/DataTable/DT_Image"));
 
 	// DataTable을 맵으로 변환 (RowName 의존 제거)
 	BuildUnitMap();
@@ -129,18 +132,21 @@ void UPDTableManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	BuildStageMap();
 	BuildBattleItemMap();
 	BuildUIBaseMap();
+	BuildImageMap();
 }
 
 void UPDTableManagerSubsystem::Deinitialize()
 {
 	UnitDataAssetCache.Empty();
 	StageDataAssetCache.Empty();
+	ImageTextureCache.Empty();
 	UnitMap.Empty();
 	UnitStatMap.Empty();
 	UnitLevelMap.Empty();
 	StageMap.Empty();
 	BattleItemMap.Empty();
 	UIBaseMap.Empty();
+	ImageMap.Empty();
 
 	UnitDataTable = nullptr;
 	UnitStatDataTable = nullptr;
@@ -148,6 +154,7 @@ void UPDTableManagerSubsystem::Deinitialize()
 	StageDataTable = nullptr;
 	BattleItemDataTable = nullptr;
 	UIBaseDataTable = nullptr;
+	ImageDataTable = nullptr;
 	Super::Deinitialize();
 }
 
@@ -314,6 +321,78 @@ UClass* UPDTableManagerSubsystem::GetUnitBP(int32 InUnitID)
 	const FString UnitBPPath = UnitAsset->UnitBP.ToSoftObjectPath().ToString();
 	UClass* ObjectClass = StaticLoadClass(UObject::StaticClass(), NULL, *UnitBPPath, NULL, LOAD_None, NULL);
 	return ObjectClass;
+}
+
+void UPDTableManagerSubsystem::BuildImageMap()
+{
+	ImageMap.Empty();
+
+	if (!ImageDataTable)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] ImageDataTable is null!"));
+		return;
+	}
+
+	TArray<FPDImageRow*> AllRows;
+	ImageDataTable->GetAllRows(TEXT("UPDTableManagerSubsystem::BuildImageMap"), AllRows);
+
+	for (const FPDImageRow* Row : AllRows)
+	{
+		if (!Row || Row->ImageName.IsNone())
+		{
+			continue;
+		}
+		if (ImageMap.Contains(Row->ImageName))
+		{
+			continue;
+		}
+		ImageMap.Add(Row->ImageName, Row);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("[PD][TableManager] ImageMap built. Total entries: %d"), ImageMap.Num());
+}
+
+UTexture2D* UPDTableManagerSubsystem::GetImage(FName ImageName)
+{
+	if (ImageName.IsNone())
+	{
+		return nullptr;
+	}
+
+	if (TObjectPtr<UTexture2D>* Cached = ImageTextureCache.Find(ImageName))
+	{
+		if (IsValid(*Cached))
+		{
+			return Cached->Get();
+		}
+		ImageTextureCache.Remove(ImageName);
+	}
+
+	const FPDImageRow* const* FoundRow = ImageMap.Find(ImageName);
+	if (!FoundRow || !*FoundRow || (*FoundRow)->FileName.IsNone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] GetImage: ImageName '%s' not found in ImageMap"), *ImageName.ToString());
+		return nullptr;
+	}
+
+	const FName FileName = (*FoundRow)->FileName;
+
+	FString BasePath;
+	if (const UPDGameInstance* GI = Cast<UPDGameInstance>(GetGameInstance()))
+	{
+		BasePath = GI->ImageBasePath;
+	}
+
+	const FString TexturePath = FString::Printf(TEXT("%s/%s.%s"), *BasePath, *FileName.ToString(), *FileName.ToString());
+	UTexture2D* Loaded = LoadObject<UTexture2D>(nullptr, *TexturePath);
+	if (!Loaded)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][TableManager] GetImage: Failed to load texture. ImageName: '%s' Path: '%s'"), *ImageName.ToString(), *TexturePath);
+		return nullptr;
+	}
+
+	ImageTextureCache.Add(ImageName, Loaded);
+	return Loaded;
 }
 
 UPDUnitDataAsset* UPDTableManagerSubsystem::GetUnitDataAssetByName(const FString& AssetName, bool bForceReload /*=false*/)

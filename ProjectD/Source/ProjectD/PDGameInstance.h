@@ -24,4 +24,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
 	TSoftObjectPtr<UPDSoundDataAsset> SoundDataAsset;
+
+	/** 이미지 텍스처가 위치하는 베이스 경로 */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Image")
+	FString ImageBasePath = TEXT("/Game/External/Image");
 };

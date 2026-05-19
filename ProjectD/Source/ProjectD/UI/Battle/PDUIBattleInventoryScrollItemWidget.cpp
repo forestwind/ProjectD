@@ -3,6 +3,10 @@
 #include "PDUIBattleInventoryScrollItemWidget.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Engine/GameInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "Table/PDTableManagerSubsystem.h"
+#include "Table/PDBattleItemRow.h"
 
 void UPDUIBattleInventoryScrollItemWidget::SetSlotData(const FPDBattleInventorySlot& InSlot)
 {
@@ -10,7 +14,31 @@ void UPDUIBattleInventoryScrollItemWidget::SetSlotData(const FPDBattleInventoryS
 
 	if (ItemIcon)
 	{
-		ItemIcon->SetVisibility(bEmpty ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible);
+		if (bEmpty)
+		{
+			ItemIcon->SetVisibility(ESlateVisibility::Hidden);
+		}
+		else
+		{
+			UTexture2D* IconTexture = nullptr;
+
+			if (UGameInstance* GI = UGameplayStatics::GetGameInstance(this))
+			{
+				if (UPDTableManagerSubsystem* TableManager = GI->GetSubsystem<UPDTableManagerSubsystem>())
+				{
+					if (const FPDBattleItemRow* ItemRow = TableManager->GetBattleItem(InSlot.ItemID))
+					{
+						IconTexture = TableManager->GetImage(ItemRow->ImageName);
+					}
+				}
+			}
+
+			if (IconTexture)
+			{
+				ItemIcon->SetBrushFromTexture(IconTexture);
+			}
+			ItemIcon->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		}
 	}
 
 	if (TextItemCount)
@@ -21,8 +49,8 @@ void UPDUIBattleInventoryScrollItemWidget::SetSlotData(const FPDBattleInventoryS
 		}
 		else
 		{
-			TextItemCount->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 			TextItemCount->SetText(FText::FromString(FString::Printf(TEXT("x%d"), InSlot.Count)));
+			TextItemCount->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
 		}
 	}
 }
