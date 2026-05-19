@@ -66,7 +66,8 @@ protected:
 	void ChangeAnimation(EAIState InAIState);
 	void AnimationEnd(UAnimMontage* InMontage, bool bInterrupted);
 	virtual void NotifyAttackEnd();
-	void ChangeAIState(EAIState InAIState);
+	virtual void SetDeath();
+	virtual void ChangeAIState(EAIState InAIState);
 
 	void TakeDamageInternal(const float InDamage);
 	void ShowUIDamageNum(float InDamage);
