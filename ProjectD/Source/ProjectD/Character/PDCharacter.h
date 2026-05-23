@@ -49,6 +49,9 @@ public:
 	int32 GetCurHP() const { return UnitInfo.CurHP; }
 	int32 GetMaxHP() const { return UnitInfo.MaxHP; }
 
+	void AddHP(int32 Amount);
+	void AddAttack(float Amount);
+
 	void Attack();
 	void CheckAttack();
 

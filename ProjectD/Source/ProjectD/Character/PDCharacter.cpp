@@ -358,6 +358,28 @@ void APDCharacter::ChangeAIState(EAIState InAIState)
 	ChangeAnimation(InAIState);
 }
 
+void APDCharacter::AddAttack(float Amount)
+{
+	if (Amount <= 0.f)
+	{
+		return;
+	}
+
+	UnitInfo.Attack += Amount;
+	UE_LOG(LogTemp, Log, TEXT("[PD][UnitID: %d] Attack increased by %.1f, now %.1f"), UnitID, Amount, UnitInfo.Attack);
+}
+
+void APDCharacter::AddHP(int32 Amount)
+{
+	if (UnitInfo.CurHP <= 0 || Amount <= 0)
+	{
+		return;
+	}
+
+	UnitInfo.CurHP = FMath::Min(UnitInfo.CurHP + Amount, UnitInfo.MaxHP);
+	UpdateUIHpBar(GetHpPercent());
+}
+
 void APDCharacter::TakeDamageInternal(const float InDamage)
 {
 	if (UnitInfo.CurHP <= 0)

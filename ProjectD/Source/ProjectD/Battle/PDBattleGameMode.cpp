@@ -12,6 +12,7 @@
 #include "Battle/PDBattleSpawnActor.h"
 #include "Battle/PDBattleItemActor.h"
 #include "Character/PDCharacter.h"
+#include "Table/PDBattleItemRow.h"
 #include "UI/Core/PDUIManagerSubsystem.h"
 #include "Table/PDTableManagerSubsystem.h"
 #include "Sound/PDSoundManagerSubsystem.h"
@@ -118,6 +119,57 @@ void APDBattleGameMode::DespawnItem(const FGuid& InItemGuid)
 	RefreshInventoryUI();
 }
 
+void APDBattleGameMode::UseItemFromInventory(int32 SlotIndex)
+{
+	if (!BattleInventory || !ModelManager)
+	{
+		return;
+	}
+
+	const TArray<FPDBattleInventorySlot>& Slots = BattleInventory->GetSlots();
+	if (!Slots.IsValidIndex(SlotIndex))
+	{
+		return;
+	}
+
+	const int32 ItemID = Slots[SlotIndex].ItemID;
+
+	UPDTableManagerSubsystem* TableManager = nullptr;
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		TableManager = GI->GetSubsystem<UPDTableManagerSubsystem>();
+	}
+
+	const FPDBattleItemRow* ItemRow = TableManager ? TableManager->GetBattleItem(ItemID) : nullptr;
+	if (!ItemRow)
+	{
+		return;
+	}
+
+	if (!BattleInventory->TryConsumeFromSlotIndex(SlotIndex))
+	{
+		return;
+	}
+
+	if (ItemRow->EffectType == EPDBattleItemEffectType::HP_Up)
+	{
+		if (APDCharacter* PlayerChar = ModelManager->FindCharacter(PlayerUnitGuid))
+		{
+			PlayerChar->AddHP(ItemRow->EffectValue);
+			UpdatePlayerHP(PlayerChar->GetCurHP(), PlayerChar->GetMaxHP());
+		}
+	}
+	else if (ItemRow->EffectType == EPDBattleItemEffectType::Attack_Up)
+	{
+		if (APDCharacter* PlayerChar = ModelManager->FindCharacter(PlayerUnitGuid))
+		{
+			PlayerChar->AddAttack(static_cast<float>(ItemRow->EffectValue));
+		}
+	}
+
+	RefreshInventoryUI();
+}
+
 void APDBattleGameMode::RefreshInventoryUI()
 {
 	if (!bInventoryVisible || !BattleInventoryWidget || !BattleInventory)
@@ -126,9 +178,10 @@ void APDBattleGameMode::RefreshInventoryUI()
 	}
 
 	BattleInventoryWidget->ClearItems();
-	for (const FPDBattleInventorySlot& Slot : BattleInventory->GetSlots())
+	const TArray<FPDBattleInventorySlot>& Slots = BattleInventory->GetSlots();
+	for (int32 i = 0; i < Slots.Num(); ++i)
 	{
-		BattleInventoryWidget->AddItem(Slot);
+		BattleInventoryWidget->AddItem(Slots[i], i);
 	}
 }
 
@@ -433,9 +486,10 @@ void APDBattleGameMode::ToggleBattleInventory()
 	if (bInventoryVisible && BattleInventory)
 	{
 		BattleInventoryWidget->ClearItems();
-		for (const FPDBattleInventorySlot& Slot : BattleInventory->GetSlots())
+		const TArray<FPDBattleInventorySlot>& ToggleSlots = BattleInventory->GetSlots();
+		for (int32 i = 0; i < ToggleSlots.Num(); ++i)
 		{
-			BattleInventoryWidget->AddItem(Slot);
+			BattleInventoryWidget->AddItem(ToggleSlots[i], i);
 		}
 	}
 

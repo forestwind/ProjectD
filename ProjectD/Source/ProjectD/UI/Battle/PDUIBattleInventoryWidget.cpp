@@ -26,7 +26,7 @@ void UPDUIBattleInventoryWidget::OnCloseButtonClicked()
 	}
 }
 
-void UPDUIBattleInventoryWidget::AddItem(const FPDBattleInventorySlot& InSlot)
+void UPDUIBattleInventoryWidget::AddItem(const FPDBattleInventorySlot& InSlot, int32 SlotIndex)
 {
 	if (!ItemWrapBox || !ItemRowClass)
 	{
@@ -37,7 +37,7 @@ void UPDUIBattleInventoryWidget::AddItem(const FPDBattleInventorySlot& InSlot)
 		CreateWidget<UPDUIBattleInventoryScrollItemWidget>(this, ItemRowClass);
 	if (Row)
 	{
-		Row->SetSlotData(InSlot);
+		Row->SetSlotData(InSlot, SlotIndex);
 		ItemWrapBox->AddChild(Row);
 	}
 }

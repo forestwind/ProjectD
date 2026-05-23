@@ -25,6 +25,12 @@ public:
 	FGuid GetItemGuid() const { return ItemGuid; }
 	int32 GetItemID() const { return ItemID; }
 
+	virtual void Tick(float DeltaTime) override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "BattleItemActor")
+	float RotationSpeed = 90.f;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BattleItemActor")
 	TObjectPtr<UStaticMeshComponent> MeshComponent;
 

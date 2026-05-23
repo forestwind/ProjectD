@@ -48,6 +48,7 @@ public:
 	void UpdateMonsterCount();
 
 	void ToggleBattleInventory();
+	void UseItemFromInventory(int32 SlotIndex);
 
 	void HandleWidgetRemoved(EUIType RemovedType);
 

@@ -11,7 +11,7 @@
 
 APDBattleItemActor::APDBattleItemActor()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	SetRootComponent(BoxComponent);
@@ -30,6 +30,13 @@ APDBattleItemActor::APDBattleItemActor()
 		MeshComponent->SetStaticMesh(CubeMeshAsset.Object);
 		MeshComponent->SetRelativeScale3D(FVector(0.35f));
 	}
+}
+
+void APDBattleItemActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	AddActorLocalRotation(FRotator(0.f, RotationSpeed * DeltaTime, 0.f));
 }
 
 void APDBattleItemActor::Initialize(const FGuid& InItemGuid, int32 InItemID)

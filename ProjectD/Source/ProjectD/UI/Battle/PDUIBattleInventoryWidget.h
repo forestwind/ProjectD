@@ -23,7 +23,7 @@ class PROJECTD_API UPDUIBattleInventoryWidget : public UUserWidget
 public:
 	/** 슬롯 하나를 스크롤 목록에 추가합니다. */
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void AddItem(const FPDBattleInventorySlot& InSlot);
+	void AddItem(const FPDBattleInventorySlot& InSlot, int32 SlotIndex);
 
 	/** 스크롤 목록을 전부 비웁니다. */
 	UFUNCTION(BlueprintCallable, Category = "UI")

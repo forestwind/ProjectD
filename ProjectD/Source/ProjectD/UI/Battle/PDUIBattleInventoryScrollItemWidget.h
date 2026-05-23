@@ -9,6 +9,7 @@
 
 class UImage;
 class UTextBlock;
+class UButton;
 class UPDTableManagerSubsystem;
 
 /**
@@ -20,9 +21,16 @@ class PROJECTD_API UPDUIBattleInventoryScrollItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	/** 슬롯 데이터를 받아 위젯 표시를 갱신합니다. 빈 슬롯(ItemID=0)이면 아이콘·수량을 숨깁니다. */
+	/** 슬롯 데이터와 인벤토리 인덱스를 받아 위젯 표시를 갱신합니다. */
 	UFUNCTION(BlueprintCallable, Category = "UI")
-	void SetSlotData(const FPDBattleInventorySlot& InSlot);
+	void SetSlotData(const FPDBattleInventorySlot& InSlot, int32 InSlotIndex);
+
+protected:
+	virtual void NativeConstruct() override;
+
+private:
+	UFUNCTION()
+	void OnUseButtonClicked();
 
 protected:
 	UPROPERTY(meta = (BindWidgetOptional))
@@ -30,4 +38,10 @@ protected:
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UTextBlock> TextItemCount;
+
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UButton> UseButton;
+
+private:
+	int32 SlotIndex = -1;
 };

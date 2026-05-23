@@ -3,13 +3,35 @@
 #include "PDUIBattleInventoryScrollItemWidget.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
 #include "Engine/GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "Table/PDTableManagerSubsystem.h"
 #include "Table/PDBattleItemRow.h"
+#include "Battle/PDBattleGameMode.h"
 
-void UPDUIBattleInventoryScrollItemWidget::SetSlotData(const FPDBattleInventorySlot& InSlot)
+void UPDUIBattleInventoryScrollItemWidget::NativeConstruct()
 {
+	Super::NativeConstruct();
+
+	if (UseButton)
+	{
+		UseButton->OnClicked.AddDynamic(this, &UPDUIBattleInventoryScrollItemWidget::OnUseButtonClicked);
+	}
+}
+
+void UPDUIBattleInventoryScrollItemWidget::OnUseButtonClicked()
+{
+	if (APDBattleGameMode* BattleGM = Cast<APDBattleGameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		BattleGM->UseItemFromInventory(SlotIndex);
+	}
+}
+
+void UPDUIBattleInventoryScrollItemWidget::SetSlotData(const FPDBattleInventorySlot& InSlot, int32 InSlotIndex)
+{
+	SlotIndex = InSlotIndex;
+
 	const bool bEmpty = (InSlot.ItemID == 0);
 
 	if (ItemIcon)

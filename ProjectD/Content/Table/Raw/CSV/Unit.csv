@@ -1,10 +1,10 @@
 Name,ID,UnitName,UnitType,StatID,KillExp,DataAssetName
 1,1,Camel,Player,1,10,DA_Unit_Camel
-2,2,Holden,Player,2,20,DA_Unit_Holden
+2,2,Holden,Player,1,20,DA_Unit_Holden
 3,3,Landon,Player,1,10,DA_Unit_Landon
-4,4,Mistic,Player,2,20,DA_Unit_Mistic
+4,4,Mistic,Player,1,20,DA_Unit_Mistic
 5,5,Nana,Player,1,10,DA_Unit_Nana
-6,6,Ramia,Player,2,20,DA_Unit_Ramia
+6,6,Ramia,Player,1,20,DA_Unit_Ramia
 7,7,Red_Knight,Player,1,10,DA_Unit_Red_Knight
-101,101,Caterpa,Monster,1,10,DA_Monster_Caterpa
+101,101,Caterpa,Monster,2,10,DA_Monster_Caterpa
 102,102,Eggpo,Monster,2,20,DA_Monster_Eggpo
