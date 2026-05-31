@@ -8,11 +8,7 @@
 
 class UCanvasPanel;
 
-/**
- * 게임 전체 UI의 Root
- * - Panel_2D / Panel_Overlay 보유
- * - AddToViewport는 외부(UIManager)에서 1회
- */
+/** 게임 전체 UI Root 위젯. World/Screen/Window/Popup/System 레이어 패널 보유. AddToViewport는 UIManager에서 1회만 호출. */
 UCLASS()
 class PROJECTD_API UPDUIRootWidget : public UUserWidget
 {

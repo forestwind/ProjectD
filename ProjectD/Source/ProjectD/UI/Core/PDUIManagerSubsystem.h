@@ -63,6 +63,4 @@ private:
 
 	void CloseLayerInternal(EUILayer Layer);
 
-private:
-	bool bRootUIAddedToViewport = false;
 };

@@ -48,7 +48,6 @@ void UPDUIManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UPDUIManagerSubsystem::Deinitialize()
 {
-	bRootUIAddedToViewport = false;
 	ActiveWidgets.Empty();
 	OnWidgetRemoved.Clear();
 
@@ -97,8 +96,6 @@ void UPDUIManagerSubsystem::EnsureRootUIAddedToViewport()
 	{
 		RootUI->AddToViewport(0);
 	}
-
-	bRootUIAddedToViewport = RootUI->IsInViewport();
 }
 
 UCanvasPanel* UPDUIManagerSubsystem::GetPanelForLayer(EUILayer Layer) const
@@ -237,7 +234,7 @@ void UPDUIManagerSubsystem::RemoveWidget(UUserWidget* Widget)
 		return;
 	}
 
-	// ActiveWidgets에서 역방향 조회 후 제거 및 브로드캐스트
+	// 위젯 포인터로 UIType을 역조회해 제거 및 브로드캐스트
 	for (auto It = ActiveWidgets.CreateIterator(); It; ++It)
 	{
 		if (It->Value == Widget)
@@ -270,12 +267,17 @@ void UPDUIManagerSubsystem::CloseLayerInternal(EUILayer Layer)
 {
 	UGameInstance* GI = GetGameInstance();
 	UPDTableManagerSubsystem* TableMgr = GI ? GI->GetSubsystem<UPDTableManagerSubsystem>() : nullptr;
+	if (!TableMgr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[PD][UIManager] CloseLayerInternal: TableMgr is null."));
+		return;
+	}
 
 	// 해당 레이어에 속하는 EUIType 수집
 	TArray<EUIType> ClosedTypes;
 	for (auto& Pair : ActiveWidgets)
 	{
-		const FPDUIBase* UIData = TableMgr ? TableMgr->GetUIBase(Pair.Key) : nullptr;
+		const FPDUIBase* UIData = TableMgr->GetUIBase(Pair.Key);
 		if (UIData && UIData->UILayer == Layer)
 		{
 			ClosedTypes.Add(Pair.Key);
