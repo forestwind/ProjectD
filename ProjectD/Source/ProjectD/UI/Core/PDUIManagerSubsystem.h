@@ -25,8 +25,7 @@ public:
 public:
 	UPDUIRootWidget* GetRootUI() const { return RootUI; }
 
-	/** UIType으로 테이블 조회 → 위젯 생성 → 해당 레이어에 전체화면으로 추가 → 반환
-	 *  레이어가 Screen이면 기존 Window 레이어 위젯을 모두 닫고 OnWidgetRemoved 브로드캐스트 */
+	/** UIType으로 위젯을 생성해 해당 레이어(전체화면)에 추가하고 반환. Screen 레이어 오픈 시 Window 레이어를 먼저 닫는다. */
 	UUserWidget* AddWidget(EUIType UIType);
 
 	/** UIType으로 테이블 조회 → 위젯 생성 → 해당 레이어의 스크린 좌표에 추가 → 반환 */
